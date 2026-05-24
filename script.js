@@ -18,6 +18,7 @@ let eraserSize = 24;
 let isDark = true;
 let lastX = null, lastY = null;
 let mode = 'lift';
+let modelReady = false;
 
 // ── RESIZE ──
 function resize() {
@@ -119,8 +120,12 @@ camWrap.addEventListener('mousedown', e => {
 
 document.addEventListener('mousemove', e => {
   if (!dragging) return;
-  camWrap.style.left = (camStartL + e.clientX - dragStartX) + 'px';
-  camWrap.style.top  = (camStartT + e.clientY - dragStartY) + 'px';
+  const newL = camStartL + e.clientX - dragStartX;
+  const newT = camStartT + e.clientY - dragStartY;
+  const maxL = window.innerWidth - camWrap.offsetWidth;
+  const maxT = window.innerHeight - camWrap.offsetHeight;
+  camWrap.style.left = Math.min(Math.max(0, newL), maxL) + 'px';
+  camWrap.style.top  = Math.min(Math.max(0, newT), maxT) + 'px';
 });
 
 document.addEventListener('mouseup', () => dragging = false);
@@ -233,6 +238,17 @@ hands.onResults(results => {
   oCtx.clearRect(0, 0, 200, 150);
   skelCtx.clearRect(0, 0, skelCanvas.width, skelCanvas.height);
 
+  // Hide loading overlay on first real MediaPipe frame
+  if (!modelReady) {
+    modelReady = true;
+    const overlay = document.getElementById('loading-overlay');
+    if (overlay) {
+      overlay.style.opacity = '0';
+      setTimeout(() => overlay.remove(), 600);
+      setStatus('lift');
+    }
+  }
+
   if (!results.multiHandLandmarks || results.multiHandLandmarks.length === 0) {
     lastX = null; lastY = null;
     mode = 'lift';
@@ -285,13 +301,6 @@ async function startCamera() {
       width: 640, height: 480
     });
     camera.start();
-
-    setTimeout(() => {
-      const overlay = document.getElementById('loading-overlay');
-      overlay.style.opacity = '0';
-      setTimeout(() => overlay.remove(), 600);
-      setStatus('lift');
-    }, 1800);
 
   } catch(e) {
     document.getElementById('loading-msg').textContent = 'Camera access denied. Please allow camera.';
