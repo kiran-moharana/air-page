@@ -4,12 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Air Canvas</title>
-  <link rel="stylesheet" href="style.css" /><!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Air Canvas</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -92,95 +86,6 @@
 <!-- MEDIAPIPE CDN -->
 <div id="version-tag">v1.2</div>
 
-<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
-
-<script src="script.js"></script>
-
-</body>
-</html>
-
-</head>
-<body>
-
-<div id="loading-overlay">
-  <div class="loading-title">AIR CANVAS</div>
-  <div class="spinner"></div>
-  <div class="loading-sub" id="loading-msg">Loading MediaPipe...</div>
-</div>
-
-<canvas id="canvas" class="dark"></canvas>
-<canvas id="skeleton-canvas"></canvas>
-
-<!-- TOOLBAR -->
-<div id="toolbar">
-  <div class="tb-label">Color</div>
-  <div id="color-presets"></div>
-
-  <div style="position:relative;width:28px;height:28px;margin:0 auto;">
-    <div class="color-dot" id="custom-dot" title="Custom color"
-      style="background: conic-gradient(red,yellow,lime,cyan,blue,magenta,red); border-style: dashed;">
-    </div>
-    <input type="color" id="custom-color" value="#ff6b6b"
-      style="position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer;border-radius:50%;">
-  </div>
-
-  <div class="tb-divider"></div>
-
-  <div class="tb-label">Brush</div>
-  <div class="slider-wrap">
-    <div class="slider-val" id="brush-val">8</div>
-    <input type="range" id="brush-size" min="2" max="40" value="8">
-  </div>
-
-  <div class="tb-divider"></div>
-
-  <div class="tb-label">Eraser</div>
-  <div class="slider-wrap">
-    <div class="slider-val" id="eraser-val">24</div>
-    <input type="range" id="eraser-size" min="8" max="80" value="24">
-  </div>
-
-  <div class="tb-divider"></div>
-
-  <button class="tb-btn" id="btn-clear" title="Clear canvas">✕</button>
-  <button class="tb-btn" id="btn-theme" title="Toggle theme">◐</button>
-  <button class="tb-btn" id="btn-save" title="Save image">↓</button>
-</div>
-
-<!-- WEBCAM -->
-<div id="cam-wrap" style="bottom:20px; right:20px;">
-  <div id="cam-header">
-    <span class="cam-title">HAND CAM</span>
-    <div class="cam-dot"></div>
-  </div>
-  <div id="cam-video-wrap">
-    <video id="webcam" autoplay playsinline muted></video>
-    <canvas id="cam-overlay"></canvas>
-  </div>
-</div>
-
-<!-- STATUS -->
-<div id="status">
-  <div class="status-item">
-    <div class="status-dot" id="s-dot"></div>
-    <span id="s-text">Initializing...</span>
-  </div>
-  <div class="status-item" style="color:rgba(255,255,255,0.25)">
-    ☝ draw &nbsp;|&nbsp; 🖐 lift &nbsp;|&nbsp; 🤙 erase
-  </div>
-</div>
-
-<!-- GESTURE GUIDE -->
-<div id="gesture-guide">
-  <div class="g-row"><span class="g-icon">☝️</span><span class="g-text">Index only → Draw</span></div>
-  <div class="g-row"><span class="g-icon">🖐️</span><span class="g-text">Open palm → Lift pen</span></div>
-  <div class="g-row"><span class="g-icon">🤙</span><span class="g-text">Pinky only → Erase</span></div>
-</div>
-
-<!-- MEDIAPIPE CDN -->
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
