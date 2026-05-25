@@ -20,6 +20,30 @@ let lastX = null, lastY = null;
 let mode = 'lift';
 let modelReady = false;
 
+// ── OFFSCREEN CANVAS (fixed resolution source of truth) ──
+const CANVAS_W = 1920;
+const CANVAS_H = 1080;
+
+const offscreen = document.createElement('canvas');
+offscreen.width = CANVAS_W;
+offscreen.height = CANVAS_H;
+const offCtx = offscreen.getContext('2d');
+
+// Scale factors — how much to scale offscreen onto main canvas
+let scaleX = 1;
+let scaleY = 1;
+
+// Convert main canvas coords to offscreen coords
+function toOff(x, y) {
+  return { x: x / scaleX, y: y / scaleY };
+}
+
+// Redraw offscreen onto main canvas scaled
+function redrawMain() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(offscreen, 0, 0, canvas.width, canvas.height);
+}
+
 // ── RESIZE ──
 function resize() {
   canvas.width = window.innerWidth;
@@ -28,6 +52,13 @@ function resize() {
   skelCanvas.height = window.innerHeight;
   camOverlay.width = 200;
   camOverlay.height = 150;
+
+  // Update scale factors
+  scaleX = canvas.width / CANVAS_W;
+  scaleY = canvas.height / CANVAS_H;
+
+  // Redraw scaled from offscreen
+  redrawMain();
 }
 resize();
 window.addEventListener('resize', resize);
@@ -79,6 +110,7 @@ eraserSlider.addEventListener('input', e => {
 
 // ── BUTTONS ──
 document.getElementById('btn-clear').addEventListener('click', () => {
+  offCtx.clearRect(0, 0, CANVAS_W, CANVAS_H);
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 });
 
@@ -91,12 +123,12 @@ document.getElementById('btn-theme').addEventListener('click', () => {
 
 document.getElementById('btn-save').addEventListener('click', () => {
   const tmp = document.createElement('canvas');
-  tmp.width = canvas.width;
-  tmp.height = canvas.height;
+  tmp.width = CANVAS_W;
+  tmp.height = CANVAS_H;
   const tc = tmp.getContext('2d');
   tc.fillStyle = isDark ? '#0d0d14' : '#f8f6f1';
-  tc.fillRect(0, 0, tmp.width, tmp.height);
-  tc.drawImage(canvas, 0, 0);
+  tc.fillRect(0, 0, CANVAS_W, CANVAS_H);
+  tc.drawImage(offscreen, 0, 0);
   const a = document.createElement('a');
   a.download = 'air-canvas.png';
   a.href = tmp.toDataURL();
@@ -146,22 +178,39 @@ function setStatus(m) {
 // ── DRAWING ──
 function drawStroke(x, y) {
   if (lastX === null) { lastX = x; lastY = y; return; }
-  ctx.beginPath();
-  ctx.moveTo(lastX, lastY);
-  ctx.lineTo(x, y);
-  ctx.strokeStyle = currentColor;
-  ctx.lineWidth = brushSize;
-  ctx.lineCap = 'round';
-  ctx.lineJoin = 'round';
-  ctx.stroke();
+
+  // Convert to offscreen coords
+  const ox1 = lastX / scaleX, oy1 = lastY / scaleY;
+  const ox2 = x / scaleX,    oy2 = y / scaleY;
+
+  // Draw on offscreen
+  offCtx.beginPath();
+  offCtx.moveTo(ox1, oy1);
+  offCtx.lineTo(ox2, oy2);
+  offCtx.strokeStyle = currentColor;
+  offCtx.lineWidth = brushSize / Math.min(scaleX, scaleY);
+  offCtx.lineCap = 'round';
+  offCtx.lineJoin = 'round';
+  offCtx.stroke();
+
   lastX = x; lastY = y;
+
+  // Redraw main canvas from offscreen
+  redrawMain();
 }
 
 function eraseAt(x, y) {
   const bgColor = isDark ? '#0d0d14' : '#f8f6f1';
-  const half = eraserSize / 2;
-  ctx.fillStyle = bgColor;
-  ctx.fillRect(x - half, y - half, eraserSize, eraserSize);
+
+  // Convert to offscreen coords
+  const ox = x / scaleX;
+  const oy = y / scaleY;
+  const offHalf = (eraserSize / Math.min(scaleX, scaleY)) / 2;
+
+  offCtx.fillStyle = bgColor;
+  offCtx.fillRect(ox - offHalf, oy - offHalf, offHalf * 2, offHalf * 2);
+
+  redrawMain();
 }
 
 // ── HAND SKELETON ──
