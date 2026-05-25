@@ -309,6 +309,23 @@ input[type=range]::-webkit-slider-thumb {
 .g-icon { font-size: 14px; }
 .g-text { color: rgba(255,255,255,0.55); }
 
+/* VERSION TAG */
+#version-tag {
+  position: fixed;
+  bottom: 14px;
+  right: 20px;
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 1px;
+  opacity: 0.35;
+  z-index: 100;
+  pointer-events: none;
+  transition: color 0.4s ease;
+  color: #ffffff;
+}
+
+#version-tag.light { color: #000000; }
+
 /* LOADING OVERLAY */
 #loading-overlay {
   position: fixed;
@@ -346,3 +363,4 @@ input[type=range]::-webkit-slider-thumb {
 }
 
 @keyframes spin { to { transform: rotate(360deg); } }
+
