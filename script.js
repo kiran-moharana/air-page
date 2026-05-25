@@ -85,6 +85,8 @@ document.getElementById('btn-clear').addEventListener('click', () => {
 document.getElementById('btn-theme').addEventListener('click', () => {
   isDark = !isDark;
   canvas.className = isDark ? 'dark' : 'light';
+  const vt = document.getElementById('version-tag');
+  if (vt) vt.className = isDark ? '' : 'light';
 });
 
 document.getElementById('btn-save').addEventListener('click', () => {
@@ -289,12 +291,22 @@ hands.onResults(results => {
 
 // ── CAMERA SETUP ──
 async function startCamera() {
-  document.getElementById('loading-msg').textContent = 'Requesting camera...';
+  const msgEl = document.getElementById('loading-msg');
+  msgEl.textContent = 'Starting camera...';
+
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
     video.srcObject = stream;
     await new Promise(r => video.onloadedmetadata = r);
-    document.getElementById('loading-msg').textContent = 'Loading hand model...';
+
+    msgEl.innerHTML = 'Downloading hand model...<br><span style="font-size:11px;opacity:0.5;">First time only — this will not happen again</span>';
+
+    // Slow network warning after 15 seconds
+    const slowTimer = setTimeout(() => {
+      if (!modelReady) {
+        msgEl.innerHTML = 'Taking longer than usual...<br><span style="font-size:11px;opacity:0.5;">Please check your connection</span>';
+      }
+    }, 15000);
 
     const camera = new Camera(video, {
       onFrame: async () => { await hands.send({ image: video }); },
@@ -308,3 +320,4 @@ async function startCamera() {
 }
 
 startCamera();
+
