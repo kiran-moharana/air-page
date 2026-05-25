@@ -1,4 +1,4 @@
-## Air Canvas
+# Air-Page
 
 A browser-based hand-tracking drawing tool that lets you draw on screen using just your hand and webcam — no mouse, no touch, just gestures.
 
@@ -8,11 +8,11 @@ Built with pure HTML, CSS, and JavaScript using Google's MediaPipe Hands library
 
 ##  Gestures
 
-| Gesture           | Action  |
-|-------------------|---------|
-| Index finger only | Draw    |
-| Open palm         | Lift pen|
-| Pinky finger only | Erase   |
+| Gesture | Action |
+|--------|--------|
+|  Index finger only | Draw |
+|  Open palm | Lift pen (stop drawing) |
+|  Pinky finger only | Erase |
 
 ---
 
@@ -25,20 +25,19 @@ Built with pure HTML, CSS, and JavaScript using Google's MediaPipe Hands library
 - **Eraser size control** — adjustable slider
 - **Light / Dark canvas toggle**
 - **Save as PNG** — download your drawing
-- **Zero backend** — runs entirely in the browser, no install needed
+- **No Data Sharing** — runs locally in the browser, no install needed
 
 ---
 
 ## How to Run
 
-1. Download or clone this repository
-2. Open `index.html` in **Chrome** or **Edge**
-3. Allow camera access when prompted
-4. Wait for MediaPipe to load 
-5. Start drawing with your hand 
+1. Open `index.html` in **Chrome** or **Edge** or in any browser
+2. Allow camera access when prompted
+3. Wait for MediaPipe to load
+4. Start drawing with your hand 
 
->>  Requires internet connection to load MediaPipe from CDN.  
->>  Works best in good lighting conditions.
+>  Requires internet connection to load MediaPipe from CDN.  
+>  Works best in good lighting conditions.
 
 ---
 
@@ -55,27 +54,31 @@ Built with pure HTML, CSS, and JavaScript using Google's MediaPipe Hands library
 
 ```
 air-canvas/
-|---index.html   
-|---style.css 
-|---script.js   
+|-- index.html   
+|-- style.css    
+|-- script.js    
+```
 
+---
+
+## Author
+
+Kiran Kumar Moharana — [@kiran-moharana](https://github.com/kiran-moharana)
+
+---
 
 ## Changelog
 
+### v1.2
+- Improved loading screen — staged messages, slow network warning 
+- Added version tag — bottom right corner, color synced with light/dark theme toggle
+
 ### v1.1
 - Fixed skeleton drawing permanently on main canvas — now uses separate overlay canvas
-- Fixed eraser — now paints background color like MS Paint instead of hole punching
-- Fixed webcam drag boundary — can no longer be dragged off the screen
-- Removed unused variables
+- Fixed eraser — now paints background color like MS Paint instead of punching holes
+- Fixed webcam drag boundary — can no longer be dragged off screen
+- Fixed loading overlay — now hides on first real MediaPipe frame, not a blind timer
+- Removed unused variables — isDrawing, thumb, w/h params in drawSkeleton
 
 ### v1.0
 - Initial release
-
-
----
-
-##  Author
-
-**Kiran Kumar Moharana** — [@undeclarable](https://github.com/undeclarable)
-
----
