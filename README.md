@@ -69,6 +69,12 @@ Kiran Kumar Moharana — [@kiran-moharana](https://github.com/kiran-moharana)
 
 ## Changelog
 
+### v1.3
+- Drawing now scales with window resize — fixed resolution offscreen canvas used as source of truth
+- Resizing or minimizing the window no longer erases any part of the drawing
+- Saved PNG exports at full 1920x1080 resolution regardless of window size
+
+
 ### v1.2
 - Improved loading screen — staged messages, slow network warning 
 - Added version tag — bottom right corner, color synced with light/dark theme toggle
