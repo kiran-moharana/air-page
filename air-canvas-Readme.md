@@ -1,18 +1,18 @@
-Air Canvas
+## Air Canvas
 
-A browser-based hand-tracking drawing tool that lets you draw on screen using just your hand and webcam - no mouse, no touch, just gestures.
+A browser-based hand-tracking drawing tool that lets you draw on screen using just your hand and webcam — no mouse, no touch, just gestures.
 
-Built with HTML, CSS, and JavaScript using Google's MediaPipe Hands library.
+Built with pure HTML, CSS, and JavaScript using Google's MediaPipe Hands library.
 
 ---
 
-## Gestures
+##  Gestures
 
-|  **Gesture**             | **Action**                |
-|--------------------------|---------------------------|
-|  Index finger only       | Draw                      |
-|  Open palm               | Lift pen (stop drawing)   |
-|  Pinky finger only       | Erase                     |
+| Gesture           | Action  |
+|-------------------|---------|
+| Index finger only | Draw    |
+| Open palm         | Lift pen|
+| Pinky finger only | Erase   |
 
 ---
 
@@ -25,19 +25,20 @@ Built with HTML, CSS, and JavaScript using Google's MediaPipe Hands library.
 - **Eraser size control** — adjustable slider
 - **Light / Dark canvas toggle**
 - **Save as PNG** — download your drawing
-- **Zero backend** — runs entirely in the browser, no need to install
+- **Zero backend** — runs entirely in the browser, no install needed
 
 ---
 
 ## How to Run
 
-1. Open index.html in **Chrome** or **Edge** or in any browser
-2. Allow camera access when prompted
-3. Wait for MediaPipe to load
-4. Start drawing with your hand 
+1. Download or clone this repository
+2. Open `index.html` in **Chrome** or **Edge**
+3. Allow camera access when prompted
+4. Wait for MediaPipe to load 
+5. Start drawing with your hand 
 
->>> Requires internet connection to load MediaPipe from CDN.  
->>> Works best in good lighting conditions.
+>>  Requires internet connection to load MediaPipe from CDN.  
+>>  Works best in good lighting conditions.
 
 ---
 
@@ -46,8 +47,35 @@ Built with HTML, CSS, and JavaScript using Google's MediaPipe Hands library.
 - HTML5 Canvas API
 - CSS3
 - Vanilla JavaScript
-- MediaPipe Hands
+- [MediaPipe Hands](https://developers.google.com/mediapipe/solutions/vision/hand_landmarker) (via CDN)
+
 ---
 
+## File Structure
+
+```
+air-canvas/
+|---index.html   
+|---style.css 
+|---script.js   
 
 
+## Changelog
+
+### v1.1
+- Fixed skeleton drawing permanently on main canvas — now uses separate overlay canvas
+- Fixed eraser — now paints background color like MS Paint instead of hole punching
+- Fixed webcam drag boundary — can no longer be dragged off the screen
+- Removed unused variables
+
+### v1.0
+- Initial release
+
+
+---
+
+##  Author
+
+**Kiran Kumar Moharana** — [@undeclarable](https://github.com/undeclarable)
+
+---
