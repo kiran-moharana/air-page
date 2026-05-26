@@ -273,6 +273,46 @@ function detectGesture(lms) {
   return 'lift';
 }
 
+// ── STABILIZATION ──
+const CONFIRM_FRAMES  = 5;      // frames needed to confirm a gesture switch
+const COOLDOWN_MS     = 300;    // ms before another gesture switch is allowed
+const MIN_VISIBILITY  = 0.6;    // minimum landmark visibility score
+const MIN_HAND_CONF   = 0.75;   // minimum overall hand confidence
+
+let gestureBuffer     = [];     // last N raw gestures
+let confirmedGesture  = 'lift'; // currently active confirmed gesture
+let lastSwitchTime    = 0;      // timestamp of last gesture switch
+
+function getConfirmedGesture(rawGesture) {
+  gestureBuffer.push(rawGesture);
+  if (gestureBuffer.length > CONFIRM_FRAMES) gestureBuffer.shift();
+
+  // All frames in buffer must agree
+  const allSame = gestureBuffer.every(g => g === gestureBuffer[0]);
+  if (!allSame) return confirmedGesture;
+
+  const candidate = gestureBuffer[0];
+  if (candidate === confirmedGesture) return confirmedGesture;
+
+  // Check cooldown
+  const now = Date.now();
+  if (now - lastSwitchTime < COOLDOWN_MS) return confirmedGesture;
+
+  // Switch confirmed
+  confirmedGesture = candidate;
+  lastSwitchTime = now;
+  return confirmedGesture;
+}
+
+function landmarksVisible(raw) {
+  // Check key landmarks — fingertips and base joints
+  const keyPoints = [4, 8, 12, 16, 20, 0, 5, 9, 13, 17];
+  return keyPoints.every(i => {
+    const lm = raw[i];
+    return lm && (lm.visibility === undefined || lm.visibility >= MIN_VISIBILITY);
+  });
+}
+
 // ── MEDIAPIPE ──
 const hands = new Hands({
   locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${f}`
@@ -281,7 +321,7 @@ const hands = new Hands({
 hands.setOptions({
   maxNumHands: 1,
   modelComplexity: 1,
-  minDetectionConfidence: 0.7,
+  minDetectionConfidence: MIN_HAND_CONF,
   minTrackingConfidence: 0.6
 });
 
@@ -302,6 +342,8 @@ hands.onResults(results => {
 
   if (!results.multiHandLandmarks || results.multiHandLandmarks.length === 0) {
     lastX = null; lastY = null;
+    gestureBuffer = [];
+    confirmedGesture = 'lift';
     mode = 'lift';
     setStatus('lift');
     return;
@@ -309,10 +351,18 @@ hands.onResults(results => {
 
   const raw = results.multiHandLandmarks[0];
 
+  // Filter weak detections
+  if (!landmarksVisible(raw)) {
+    lastX = null; lastY = null;
+    return;
+  }
+
   // Mirror landmarks for natural feel
   const lms = raw.map(lm => ({ x: 1 - lm.x, y: lm.y, z: lm.z }));
 
-  const gesture = detectGesture(lms);
+  const rawGesture = detectGesture(lms);
+  const gesture    = getConfirmedGesture(rawGesture);
+
   mode = gesture;
   setStatus(gesture);
 
