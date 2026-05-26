@@ -69,6 +69,14 @@ Kiran Kumar Moharana — [@kiran-moharana](https://github.com/kiran-moharana)
 
 ## Changelog
 
+### v1.4
+- Added gesture confirmation buffer — gesture must be held for 5 consecutive frames before switching
+- Added landmark visibility filtering — weak or partially visible hand detections are ignored
+- Added gesture cooldown — 300ms must pass before another gesture switch is allowed
+- Increased hand detection confidence threshold to 0.75 for more reliable detection
+- Gesture switching is now stable and does not flicker accidentally
+
+
 ### v1.3
 - Drawing now scales with window resize — fixed resolution offscreen canvas used as source of truth
 - Resizing or minimizing the window no longer erases any part of the drawing
