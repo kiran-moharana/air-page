@@ -309,7 +309,7 @@ const BUFFER_SIZE   = 7;
 const LERP_FACTOR   = 0.3;
 const MIN_MOVE      = 3;
 const MAX_SPEED     = 180;
-const GRACE_FRAMES  = 10;
+const GRACE_FRAMES  = 3;
 
 let posBuffer  = [];
 let smoothX    = null;
@@ -457,6 +457,30 @@ hands.onResults(results => {
   const rawGesture = detectGesture(lms);
   const gesture    = getConfirmedGesture(rawGesture);
 
+  // Immediate stop — if raw gesture is lift, stop drawing right away
+  // don't wait for confirmation buffer
+  const immediateRaw = detectGesture(lms);
+  if (immediateRaw === 'lift' && mode !== 'lift') {
+    lastX = null; lastY = null;
+    mode = 'lift';
+    setStatus('lift');
+    return;
+  }
+
+  // Clear opposite buffer on gesture switch
+  if (gesture !== confirmedGesture) {
+    if (gesture === 'draw') {
+      // Switching to draw — clear pinky buffer
+      pinkyBuffer = []; pSmoothX = null; pSmoothY = null;
+      lastPinkyRawX = null; lastPinkyRawY = null;
+    } else if (gesture === 'erase') {
+      // Switching to erase — clear index buffer
+      posBuffer = []; smoothX = null; smoothY = null;
+      lastRawX = null; lastRawY = null;
+      lastX = null; lastY = null;
+    }
+  }
+
   mode = gesture;
   setStatus(gesture);
 
@@ -529,3 +553,4 @@ async function startCamera() {
 }
 
 startCamera();
+
