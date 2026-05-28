@@ -69,6 +69,12 @@ Kiran Kumar Moharana — [@kiran-moharana](https://github.com/kiran-moharana)
 
 ## Changelog
 
+### v1.6
+- Drawing stops immediately when pen is lifted — no more trailing strokes after gesture change
+- Reduced grace period from 10 to 3 frames for faster response to hand loss
+- Index finger buffer cleared when switching to erase mode — no position bleed
+- Pinky buffer cleared when switching to draw mode — clean start every time
+
 ### v1.5
 - Added moving average smoothing — recent frames count more than older versions
 - Added lerp interpolation — hand position moves fluidly instead of jumping
