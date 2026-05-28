@@ -69,6 +69,15 @@ Kiran Kumar Moharana — [@kiran-moharana](https://github.com/kiran-moharana)
 
 ## Changelog
 
+### v1.5
+- Added moving average smoothing — recent frames count more than older versions
+- Added lerp interpolation — hand position moves fluidly instead of jumping
+- Added velocity check — tracking errors that move too fast are ignored automatically
+- Added minimum movement threshold — micro-jitter under 3px is filtered out
+- Added hand loss grace period — brief hand disappearance no longer resets drawing
+- Eraser position is also smoothed for consistent erasing
+
+
 ### v1.4
 - Added gesture confirmation buffer — gesture must be held for 5 consecutive frames before switching
 - Added landmark visibility filtering — weak or partially visible hand detections are ignored
