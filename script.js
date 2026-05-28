@@ -33,11 +33,6 @@ const offCtx = offscreen.getContext('2d');
 let scaleX = 1;
 let scaleY = 1;
 
-// Convert main canvas coords to offscreen coords
-function toOff(x, y) {
-  return { x: x / scaleX, y: y / scaleY };
-}
-
 // Redraw offscreen onto main canvas scaled
 function redrawMain() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -274,43 +269,136 @@ function detectGesture(lms) {
 }
 
 // ── STABILIZATION ──
-const CONFIRM_FRAMES  = 5;      // frames needed to confirm a gesture switch
-const COOLDOWN_MS     = 300;    // ms before another gesture switch is allowed
-const MIN_VISIBILITY  = 0.6;    // minimum landmark visibility score
-const MIN_HAND_CONF   = 0.75;   // minimum overall hand confidence
+const CONFIRM_FRAMES  = 5;
+const COOLDOWN_MS     = 300;
+const MIN_VISIBILITY  = 0.6;
+const MIN_HAND_CONF   = 0.75;
 
-let gestureBuffer     = [];     // last N raw gestures
-let confirmedGesture  = 'lift'; // currently active confirmed gesture
-let lastSwitchTime    = 0;      // timestamp of last gesture switch
+let gestureBuffer     = [];
+let confirmedGesture  = 'lift';
+let lastSwitchTime    = 0;
 
 function getConfirmedGesture(rawGesture) {
   gestureBuffer.push(rawGesture);
   if (gestureBuffer.length > CONFIRM_FRAMES) gestureBuffer.shift();
 
-  // All frames in buffer must agree
   const allSame = gestureBuffer.every(g => g === gestureBuffer[0]);
   if (!allSame) return confirmedGesture;
 
   const candidate = gestureBuffer[0];
   if (candidate === confirmedGesture) return confirmedGesture;
 
-  // Check cooldown
   const now = Date.now();
   if (now - lastSwitchTime < COOLDOWN_MS) return confirmedGesture;
 
-  // Switch confirmed
   confirmedGesture = candidate;
   lastSwitchTime = now;
   return confirmedGesture;
 }
 
 function landmarksVisible(raw) {
-  // Check key landmarks — fingertips and base joints
   const keyPoints = [4, 8, 12, 16, 20, 0, 5, 9, 13, 17];
   return keyPoints.every(i => {
     const lm = raw[i];
     return lm && (lm.visibility === undefined || lm.visibility >= MIN_VISIBILITY);
   });
+}
+
+// ── ADVANCED SMOOTHING ──
+const BUFFER_SIZE   = 7;
+const LERP_FACTOR   = 0.3;
+const MIN_MOVE      = 3;
+const MAX_SPEED     = 180;
+const GRACE_FRAMES  = 10;
+
+let posBuffer  = [];
+let smoothX    = null;
+let smoothY    = null;
+let graceCnt   = 0;
+let lastRawX   = null;
+let lastRawY   = null;
+
+// Separate buffer for pinky/eraser
+let pinkyBuffer  = [];
+let pSmoothX     = null;
+let pSmoothY     = null;
+let lastPinkyRawX = null;
+let lastPinkyRawY = null;
+
+function addToBuffer(x, y) {
+  posBuffer.push({ x, y });
+  if (posBuffer.length > BUFFER_SIZE) posBuffer.shift();
+}
+
+function getWeightedAverage(buf) {
+  const len = buf.length;
+  if (len === 0) return null;
+  let wx = 0, wy = 0, wSum = 0;
+  buf.forEach((p, i) => {
+    const w = i + 1;
+    wx += p.x * w;
+    wy += p.y * w;
+    wSum += w;
+  });
+  return { x: wx / wSum, y: wy / wSum };
+}
+
+function getSmoothed(rawX, rawY) {
+  if (lastRawX !== null) {
+    const speed = Math.hypot(rawX - lastRawX, rawY - lastRawY);
+    if (speed > MAX_SPEED) return smoothX !== null ? { x: smoothX, y: smoothY } : null;
+  }
+  lastRawX = rawX;
+  lastRawY = rawY;
+
+  posBuffer.push({ x: rawX, y: rawY });
+  if (posBuffer.length > BUFFER_SIZE) posBuffer.shift();
+
+  const avg = getWeightedAverage(posBuffer);
+  if (!avg) return null;
+
+  if (smoothX === null) { smoothX = avg.x; smoothY = avg.y; }
+  else {
+    smoothX += (avg.x - smoothX) * LERP_FACTOR;
+    smoothY += (avg.y - smoothY) * LERP_FACTOR;
+  }
+  return { x: smoothX, y: smoothY };
+}
+
+function getPinkySmoothed(rawX, rawY) {
+  if (lastPinkyRawX !== null) {
+    const speed = Math.hypot(rawX - lastPinkyRawX, rawY - lastPinkyRawY);
+    if (speed > MAX_SPEED) return pSmoothX !== null ? { x: pSmoothX, y: pSmoothY } : null;
+  }
+  lastPinkyRawX = rawX;
+  lastPinkyRawY = rawY;
+
+  pinkyBuffer.push({ x: rawX, y: rawY });
+  if (pinkyBuffer.length > BUFFER_SIZE) pinkyBuffer.shift();
+
+  const avg = getWeightedAverage(pinkyBuffer);
+  if (!avg) return null;
+
+  if (pSmoothX === null) { pSmoothX = avg.x; pSmoothY = avg.y; }
+  else {
+    pSmoothX += (avg.x - pSmoothX) * LERP_FACTOR;
+    pSmoothY += (avg.y - pSmoothY) * LERP_FACTOR;
+  }
+  return { x: pSmoothX, y: pSmoothY };
+}
+
+function resetSmoothing() {
+  posBuffer    = [];
+  smoothX      = null;
+  smoothY      = null;
+  lastRawX     = null;
+  lastRawY     = null;
+  pinkyBuffer  = [];
+  pSmoothX     = null;
+  pSmoothY     = null;
+  lastPinkyRawX = null;
+  lastPinkyRawY = null;
+  graceCnt     = 0;
 }
 
 // ── MEDIAPIPE ──
@@ -341,14 +429,20 @@ hands.onResults(results => {
   }
 
   if (!results.multiHandLandmarks || results.multiHandLandmarks.length === 0) {
-    lastX = null; lastY = null;
-    gestureBuffer = [];
-    confirmedGesture = 'lift';
-    mode = 'lift';
-    setStatus('lift');
+    graceCnt++;
+    // Grace period — keep last position for a few frames before resetting
+    if (graceCnt > GRACE_FRAMES) {
+      lastX = null; lastY = null;
+      gestureBuffer = [];
+      confirmedGesture = 'lift';
+      mode = 'lift';
+      setStatus('lift');
+      resetSmoothing();
+    }
     return;
   }
 
+  graceCnt = 0;
   const raw = results.multiHandLandmarks[0];
 
   // Filter weak detections
@@ -366,25 +460,41 @@ hands.onResults(results => {
   mode = gesture;
   setStatus(gesture);
 
-  const tipX = lms[8].x * canvas.width;
-  const tipY = lms[8].y * canvas.height;
+  // Get raw tip position
+  const rawTipX = lms[8].x * canvas.width;
+  const rawTipY = lms[8].y * canvas.height;
 
-  // Cam overlay skeleton (un-mirrored, since video is CSS-mirrored)
+  // Apply smoothing
+  const smoothed = getSmoothed(rawTipX, rawTipY);
+  if (!smoothed) return;
+
+  const tipX = smoothed.x;
+  const tipY = smoothed.y;
+
+  // Cam overlay skeleton
   const camLms = raw.map(lm => ({ x: lm.x, y: lm.y, z: lm.z }));
   drawSkeleton(camLms, false, 'rgba(255,255,255,0.6)', 'rgba(255,255,255,0.9)');
 
-  // Canvas skeleton (mirrored, color-synced)
+  // Canvas skeleton
   drawSkeleton(lms, true, currentColor + 'aa', currentColor);
 
   if (gesture === 'draw') {
+    // Minimum movement threshold
+    if (lastX !== null) {
+      const dist = Math.hypot(tipX - lastX, tipY - lastY);
+      if (dist < MIN_MOVE) return;
+    }
     drawStroke(tipX, tipY);
   } else if (gesture === 'erase') {
-    const pinkyTipX = lms[20].x * canvas.width;
-    const pinkyTipY = lms[20].y * canvas.height;
-    eraseAt(pinkyTipX, pinkyTipY);
+    const rawPinkyX = lms[20].x * canvas.width;
+    const rawPinkyY = lms[20].y * canvas.height;
+    const smoothedPinky = getPinkySmoothed(rawPinkyX, rawPinkyY);
+    if (!smoothedPinky) return;
+    eraseAt(smoothedPinky.x, smoothedPinky.y);
     lastX = null; lastY = null;
   } else {
     lastX = null; lastY = null;
+    resetSmoothing();
   }
 });
 
@@ -419,4 +529,3 @@ async function startCamera() {
 }
 
 startCamera();
-
