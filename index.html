@@ -76,15 +76,26 @@
   </div>
 </div>
 
-<!-- GESTURE GUIDE -->
+<!-- GESTURE GUIDE + MODE TOGGLE -->
 <div id="gesture-guide">
-  <div class="g-row"><span class="g-icon">☝️</span><span class="g-text">Index only → Draw</span></div>
-  <div class="g-row"><span class="g-icon">🖐️</span><span class="g-text">Open palm → Lift pen</span></div>
-  <div class="g-row"><span class="g-icon">🤙</span><span class="g-text">Pinky only → Erase</span></div>
+  <div id="mode-toggle-wrap">
+    <button id="btn-mode" class="mode-btn hand-mode" title="Switch mode">
+      <span id="mode-icon">✋</span>
+      <span id="mode-label">Hand Mode</span>
+    </button>
+  </div>
+  <div id="gesture-rows">
+    <div class="g-row"><span class="g-icon">☝️</span><span class="g-text">Index only → Draw</span></div>
+    <div class="g-row"><span class="g-icon">🖐️</span><span class="g-text">Open palm → Lift pen</span></div>
+    <div class="g-row"><span class="g-icon">🤙</span><span class="g-text">Pinky only → Erase</span></div>
+  </div>
 </div>
 
+<!-- BRUSH PREVIEW -->
+<canvas id="brush-preview"></canvas>
+
 <!-- MEDIAPIPE CDN -->
-<div id="version-tag">v1.6</div>
+<div id="version-tag">v2.0</div>
 
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
