@@ -69,6 +69,16 @@ Kiran Kumar Moharana — [@kiran-moharana](https://github.com/kiran-moharana)
 
 ## Changelog
 
+
+### v2.0
+- Added Mouse Mode — toggle between Hand Mode and Mouse Mode from top right panel
+- Custom brush cursor in Mouse Mode — colored circle matching brush color with white highlight
+- Cursor size matches current brush size and updates in real time
+- Click and drag to draw with mouse in Mouse Mode
+- Hand skeleton hidden in Mouse Mode to avoid confusion
+- Gesture guide hidden in Mouse Mode since gestures are inactive
+
+
 ### v1.6
 - Drawing stops immediately when pen is lifted — no more trailing strokes after gesture change
 - Reduced grace period from 10 to 3 frames for faster response to hand loss
