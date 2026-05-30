@@ -16,6 +16,43 @@ let currentColor = COLORS[0];
 let brushSize = 8;
 let eraserSize = 24;
 let isDark = true;
+let mouseMode = false;
+let isMouseDrawing = false;
+
+// ── BRUSH PREVIEW CANVAS ──
+const brushPreview = document.getElementById('brush-preview');
+const bpCtx = brushPreview.getContext('2d');
+brushPreview.width = window.innerWidth;
+brushPreview.height = window.innerHeight;
+
+function drawBrushCursor(x, y) {
+  bpCtx.clearRect(0, 0, brushPreview.width, brushPreview.height);
+  const r = brushSize / 2;
+
+  // Highlight outline
+  bpCtx.beginPath();
+  bpCtx.arc(x, y, r + 3, 0, Math.PI * 2);
+  bpCtx.strokeStyle = 'rgba(255,255,255,0.6)';
+  bpCtx.lineWidth = 1.5;
+  bpCtx.stroke();
+
+  // Colored circle matching brush color
+  bpCtx.beginPath();
+  bpCtx.arc(x, y, r, 0, Math.PI * 2);
+  bpCtx.strokeStyle = currentColor;
+  bpCtx.lineWidth = 2;
+  bpCtx.stroke();
+
+  // Sharp center dot
+  bpCtx.beginPath();
+  bpCtx.arc(x, y, 1.5, 0, Math.PI * 2);
+  bpCtx.fillStyle = '#ffffff';
+  bpCtx.fill();
+}
+
+function clearBrushCursor() {
+  bpCtx.clearRect(0, 0, brushPreview.width, brushPreview.height);
+}
 let lastX = null, lastY = null;
 let mode = 'lift';
 let modelReady = false;
@@ -45,6 +82,8 @@ function resize() {
   canvas.height = window.innerHeight;
   skelCanvas.width = window.innerWidth;
   skelCanvas.height = window.innerHeight;
+  brushPreview.width = window.innerWidth;
+  brushPreview.height = window.innerHeight;
   camOverlay.width = 200;
   camOverlay.height = 150;
 
@@ -97,6 +136,12 @@ const eraserSlider = document.getElementById('eraser-size');
 brushSlider.addEventListener('input', e => {
   brushSize = +e.target.value;
   document.getElementById('brush-val').textContent = brushSize;
+  // Show preview dot while sliding
+  if (mouseMode) {
+    const cx = brushPreview.width / 2;
+    const cy = brushPreview.height / 2;
+    drawBrushCursor(cx, cy);
+  }
 });
 eraserSlider.addEventListener('input', e => {
   eraserSize = +e.target.value;
@@ -130,7 +175,70 @@ document.getElementById('btn-save').addEventListener('click', () => {
   a.click();
 });
 
-// ── DRAGGABLE WEBCAM ──
+// ── MODE TOGGLE ──
+const btnMode = document.getElementById('btn-mode');
+const modeIcon = document.getElementById('mode-icon');
+const modeLabel = document.getElementById('mode-label');
+const gestureRows = document.getElementById('gesture-rows');
+const skelCanvasEl = document.getElementById('skeleton-canvas');
+
+function setMouseMode(val) {
+  mouseMode = val;
+  if (mouseMode) {
+    btnMode.className = 'mode-btn mouse-mode';
+    modeIcon.textContent = '🖱️';
+    modeLabel.textContent = 'Mouse Mode';
+    gestureRows.style.display = 'none';
+    skelCanvasEl.style.display = 'none';
+    brushPreview.style.display = 'block';
+    canvas.style.cursor = 'none';
+  } else {
+    btnMode.className = 'mode-btn hand-mode';
+    modeIcon.textContent = '✋';
+    modeLabel.textContent = 'Hand Mode';
+    gestureRows.style.display = 'block';
+    skelCanvasEl.style.display = 'block';
+    brushPreview.style.display = 'none';
+    canvas.style.cursor = 'crosshair';
+    clearBrushCursor();
+  }
+}
+
+btnMode.addEventListener('click', () => setMouseMode(!mouseMode));
+
+// ── MOUSE DRAWING ──
+canvas.addEventListener('mouseenter', e => {
+  if (!mouseMode) return;
+  drawBrushCursor(e.clientX, e.clientY);
+});
+
+canvas.addEventListener('mouseleave', () => {
+  if (!mouseMode) return;
+  clearBrushCursor();
+  isMouseDrawing = false;
+  lastX = null; lastY = null;
+});
+
+canvas.addEventListener('mousemove', e => {
+  if (!mouseMode) return;
+  drawBrushCursor(e.clientX, e.clientY);
+  if (isMouseDrawing) {
+    drawStroke(e.clientX, e.clientY);
+  }
+});
+
+canvas.addEventListener('mousedown', e => {
+  if (!mouseMode) return;
+  isMouseDrawing = true;
+  lastX = null; lastY = null;
+  drawStroke(e.clientX, e.clientY);
+});
+
+canvas.addEventListener('mouseup', () => {
+  if (!mouseMode) return;
+  isMouseDrawing = false;
+  lastX = null; lastY = null;
+});
 let dragging = false, dragStartX, dragStartY, camStartL, camStartT;
 
 camWrap.addEventListener('mousedown', e => {
@@ -270,6 +378,7 @@ function detectGesture(lms) {
 
 // ── STABILIZATION ──
 const CONFIRM_FRAMES  = 5;
+const LIFT_FRAMES     = 2;    // lift confirms faster than draw/erase
 const COOLDOWN_MS     = 300;
 const MIN_VISIBILITY  = 0.6;
 const MIN_HAND_CONF   = 0.75;
@@ -280,7 +389,10 @@ let lastSwitchTime    = 0;
 
 function getConfirmedGesture(rawGesture) {
   gestureBuffer.push(rawGesture);
-  if (gestureBuffer.length > CONFIRM_FRAMES) gestureBuffer.shift();
+
+  // Use shorter window for lift, longer for draw/erase
+  const window = rawGesture === 'lift' ? LIFT_FRAMES : CONFIRM_FRAMES;
+  if (gestureBuffer.length > window) gestureBuffer.shift();
 
   const allSame = gestureBuffer.every(g => g === gestureBuffer[0]);
   if (!allSame) return confirmedGesture;
@@ -451,32 +563,26 @@ hands.onResults(results => {
     return;
   }
 
+  // In mouse mode, skip all hand drawing
+  if (mouseMode) return;
+
   // Mirror landmarks for natural feel
   const lms = raw.map(lm => ({ x: 1 - lm.x, y: lm.y, z: lm.z }));
 
   const rawGesture = detectGesture(lms);
   const gesture    = getConfirmedGesture(rawGesture);
 
-  // Immediate stop — if raw gesture is lift, stop drawing right away
-  // don't wait for confirmation buffer
-  const immediateRaw = detectGesture(lms);
-  if (immediateRaw === 'lift' && mode !== 'lift') {
-    lastX = null; lastY = null;
-    mode = 'lift';
-    setStatus('lift');
-    return;
-  }
-
-  // Clear opposite buffer on gesture switch
-  if (gesture !== confirmedGesture) {
+  // Clear opposite buffer on gesture switch — keeps buffers clean
+  if (gesture !== mode) {
     if (gesture === 'draw') {
-      // Switching to draw — clear pinky buffer
       pinkyBuffer = []; pSmoothX = null; pSmoothY = null;
       lastPinkyRawX = null; lastPinkyRawY = null;
     } else if (gesture === 'erase') {
-      // Switching to erase — clear index buffer
       posBuffer = []; smoothX = null; smoothY = null;
       lastRawX = null; lastRawY = null;
+      lastX = null; lastY = null;
+    } else if (gesture === 'lift') {
+      // Reset draw position cleanly on confirmed lift
       lastX = null; lastY = null;
     }
   }
@@ -553,4 +659,3 @@ async function startCamera() {
 }
 
 startCamera();
-
