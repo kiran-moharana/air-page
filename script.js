@@ -15,6 +15,7 @@ const camWrap = document.getElementById('cam-wrap');
 let currentColor = COLORS[0];
 let brushSize = 8;
 let eraserSize = 24;
+let brushType = 'brush'; // 'brush', 'marker', 'pen'
 let isDark = true;
 let mouseMode = false;
 let isMouseDrawing = false;
@@ -146,6 +147,19 @@ brushSlider.addEventListener('input', e => {
 eraserSlider.addEventListener('input', e => {
   eraserSize = +e.target.value;
   document.getElementById('eraser-val').textContent = eraserSize;
+});
+
+// ── BRUSH TYPE SELECTOR ──
+const brushTypeBtns = document.querySelectorAll('.brush-type-btn');
+
+brushTypeBtns.forEach(btn => {
+  btn.addEventListener('click', () => {
+    brushTypeBtns.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    if (btn.id === 'btn-brush')  brushType = 'brush';
+    if (btn.id === 'btn-marker') brushType = 'marker';
+    if (btn.id === 'btn-pen')    brushType = 'pen';
+  });
 });
 
 // ── BUTTONS ──
@@ -320,22 +334,50 @@ function setStatus(m) {
 }
 
 // ── DRAWING ──
+function applyBrushStyle(ctx, size) {
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+
+  if (brushType === 'brush') {
+    // Soft edges, slightly transparent
+    ctx.globalAlpha = 0.7;
+    ctx.lineWidth = size;
+    ctx.shadowBlur = size * 0.6;
+    ctx.shadowColor = currentColor;
+  } else if (brushType === 'marker') {
+    // Hard edges, fully opaque, flat
+    ctx.globalAlpha = 1.0;
+    ctx.lineWidth = size;
+    ctx.shadowBlur = 0;
+    ctx.lineCap = 'square';
+  } else if (brushType === 'pen') {
+    // Thin, precise, hard edges
+    ctx.globalAlpha = 1.0;
+    ctx.lineWidth = Math.max(1, size * 0.4);
+    ctx.shadowBlur = 0;
+  }
+}
+
+function resetBrushStyle(ctx) {
+  ctx.globalAlpha = 1.0;
+  ctx.shadowBlur = 0;
+  ctx.shadowColor = 'transparent';
+}
+
 function drawStroke(x, y, fromMouse = false) {
   if (lastX === null) { lastX = x; lastY = y; return; }
 
-  // Mouse coords are screen coords — convert to offscreen
-  // Hand coords are also screen coords — same conversion
   const ox1 = lastX / scaleX, oy1 = lastY / scaleY;
   const ox2 = x / scaleX,    oy2 = y / scaleY;
+  const offSize = brushSize / Math.min(scaleX, scaleY);
 
   offCtx.beginPath();
   offCtx.moveTo(ox1, oy1);
   offCtx.lineTo(ox2, oy2);
   offCtx.strokeStyle = currentColor;
-  offCtx.lineWidth = brushSize / Math.min(scaleX, scaleY);
-  offCtx.lineCap = 'round';
-  offCtx.lineJoin = 'round';
+  applyBrushStyle(offCtx, offSize);
   offCtx.stroke();
+  resetBrushStyle(offCtx);
 
   lastX = x; lastY = y;
   redrawMain();
