@@ -69,6 +69,11 @@ Kiran Kumar Moharana — [@kiran-moharana](https://github.com/kiran-moharana)
 
 ## Changelog
 
+### v2.2
+- Added brush type selector — Brush, Marker, and Pen
+- Brush type works in both Hand Mode and Mouse Mode
+
+
 
 ### v2.1
 - Fixed drawing breaks at certain positions in Mouse Mode
