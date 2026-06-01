@@ -69,10 +69,16 @@ Kiran Kumar Moharana — [@kiran-moharana](https://github.com/kiran-moharana)
 
 ## Changelog
 
+
+### v2.3
+- Added Undo and Redo support
+- Ctrl+Z to undo, Ctrl+Y to redo
+- Works for drawing, erasing, and clear canvas actions
+
+
 ### v2.2
 - Added brush type selector — Brush, Marker, and Pen
 - Brush type works in both Hand Mode and Mouse Mode
-
 
 
 ### v2.1
@@ -97,6 +103,7 @@ Kiran Kumar Moharana — [@kiran-moharana](https://github.com/kiran-moharana)
 - Reduced grace period from 10 to 3 frames for faster response to hand loss
 - Index finger buffer cleared when switching to erase mode — no position bleed
 - Pinky buffer cleared when switching to draw mode — clean start every time
+
 
 ### v1.5
 - Added moving average smoothing — recent frames count more than older versions
