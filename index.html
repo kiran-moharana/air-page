@@ -48,6 +48,15 @@
 
   <div class="tb-divider"></div>
 
+  <div class="tb-label">Type</div>
+  <div id="brush-types">
+    <button class="brush-type-btn active" id="btn-brush" title="Brush">B</button>
+    <button class="brush-type-btn" id="btn-marker" title="Marker">M</button>
+    <button class="brush-type-btn" id="btn-pen" title="Pen">P</button>
+  </div>
+
+  <div class="tb-divider"></div>
+
   <button class="tb-btn" id="btn-clear" title="Clear canvas">✕</button>
   <button class="tb-btn" id="btn-theme" title="Toggle theme">◐</button>
   <button class="tb-btn" id="btn-save" title="Save image">↓</button>
@@ -95,7 +104,7 @@
 <canvas id="brush-preview"></canvas>
 
 <!-- MEDIAPIPE CDN -->
-<div id="version-tag">v2.1</div>
+<div id="version-tag">v2.2</div>
 
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
