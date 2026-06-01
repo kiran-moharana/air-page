@@ -206,39 +206,80 @@ function setMouseMode(val) {
 
 btnMode.addEventListener('click', () => setMouseMode(!mouseMode));
 
+let isMouseErasing = false;
+
+function drawEraserCursor(x, y) {
+  bpCtx.clearRect(0, 0, brushPreview.width, brushPreview.height);
+  const half = eraserSize / 2;
+
+  // Outer highlight
+  bpCtx.strokeStyle = 'rgba(255,255,255,0.6)';
+  bpCtx.lineWidth = 1.5;
+  bpCtx.strokeRect(x - half - 3, y - half - 3, eraserSize + 6, eraserSize + 6);
+
+  // Eraser rectangle
+  bpCtx.strokeStyle = 'rgba(255,100,100,0.9)';
+  bpCtx.lineWidth = 1.5;
+  bpCtx.strokeRect(x - half, y - half, eraserSize, eraserSize);
+
+  // Center crosshair dot
+  bpCtx.beginPath();
+  bpCtx.arc(x, y, 1.5, 0, Math.PI * 2);
+  bpCtx.fillStyle = '#ffffff';
+  bpCtx.fill();
+}
+
 // ── MOUSE DRAWING ──
 canvas.addEventListener('mouseenter', e => {
   if (!mouseMode) return;
-  drawBrushCursor(e.clientX, e.clientY);
+  if (e.buttons === 2) drawEraserCursor(e.clientX, e.clientY);
+  else drawBrushCursor(e.clientX, e.clientY);
 });
 
 canvas.addEventListener('mouseleave', () => {
   if (!mouseMode) return;
   clearBrushCursor();
   isMouseDrawing = false;
+  isMouseErasing = false;
   lastX = null; lastY = null;
 });
 
 canvas.addEventListener('mousemove', e => {
   if (!mouseMode) return;
-  drawBrushCursor(e.clientX, e.clientY);
-  if (isMouseDrawing) {
-    drawStroke(e.clientX, e.clientY);
+  if (isMouseErasing || e.buttons === 2) {
+    drawEraserCursor(e.clientX, e.clientY);
+    if (isMouseErasing) eraseAt(e.clientX, e.clientY);
+  } else {
+    drawBrushCursor(e.clientX, e.clientY);
+    if (isMouseDrawing) drawStroke(e.clientX, e.clientY);
   }
 });
 
 canvas.addEventListener('mousedown', e => {
   if (!mouseMode) return;
-  isMouseDrawing = true;
-  lastX = null; lastY = null;
-  drawStroke(e.clientX, e.clientY);
+  if (e.button === 2) {
+    // Right click — erase
+    isMouseErasing = true;
+    isMouseDrawing = false;
+    lastX = null; lastY = null;
+    eraseAt(e.clientX, e.clientY);
+  } else if (e.button === 0) {
+    // Left click — draw
+    isMouseDrawing = true;
+    isMouseErasing = false;
+    lastX = null; lastY = null;
+    drawStroke(e.clientX, e.clientY);
+  }
 });
 
-canvas.addEventListener('mouseup', () => {
+canvas.addEventListener('mouseup', e => {
   if (!mouseMode) return;
-  isMouseDrawing = false;
-  lastX = null; lastY = null;
+  if (e.button === 2) { isMouseErasing = false; }
+  if (e.button === 0) { isMouseDrawing = false; lastX = null; lastY = null; }
 });
+
+// Prevent right click context menu on canvas
+canvas.addEventListener('contextmenu', e => e.preventDefault());
 let dragging = false, dragStartX, dragStartY, camStartL, camStartT;
 
 camWrap.addEventListener('mousedown', e => {
@@ -279,14 +320,14 @@ function setStatus(m) {
 }
 
 // ── DRAWING ──
-function drawStroke(x, y) {
+function drawStroke(x, y, fromMouse = false) {
   if (lastX === null) { lastX = x; lastY = y; return; }
 
-  // Convert to offscreen coords
+  // Mouse coords are screen coords — convert to offscreen
+  // Hand coords are also screen coords — same conversion
   const ox1 = lastX / scaleX, oy1 = lastY / scaleY;
   const ox2 = x / scaleX,    oy2 = y / scaleY;
 
-  // Draw on offscreen
   offCtx.beginPath();
   offCtx.moveTo(ox1, oy1);
   offCtx.lineTo(ox2, oy2);
@@ -297,8 +338,6 @@ function drawStroke(x, y) {
   offCtx.stroke();
 
   lastX = x; lastY = y;
-
-  // Redraw main canvas from offscreen
   redrawMain();
 }
 
