@@ -70,6 +70,14 @@ Kiran Kumar Moharana — [@kiran-moharana](https://github.com/kiran-moharana)
 ## Changelog
 
 
+### v2.1
+- Fixed drawing breaks at certain positions in Mouse Mode
+- Added right click to erase in Mouse Mode — left click draws, right click erases
+- Added rectangle eraser cursor in Mouse Mode showing exact erase area with red outline and highlight
+- Fixed stroke connection between separate mouse clicks — lines no longer connect across clicks
+- Context menu disabled on canvas to allow right click erasing
+
+
 ### v2.0
 - Added Mouse Mode — toggle between Hand Mode and Mouse Mode from top right panel
 - Custom brush cursor in Mouse Mode — colored circle matching brush color with white highlight
