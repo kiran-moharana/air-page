@@ -15,7 +15,43 @@ const camWrap = document.getElementById('cam-wrap');
 let currentColor = COLORS[0];
 let brushSize = 8;
 let eraserSize = 24;
-let brushType = 'brush'; // 'brush', 'marker', 'pen'
+let brushType = 'brush';
+
+// ── UNDO / REDO ──
+const MAX_HISTORY = 30;
+let undoStack = [];
+let redoStack = [];
+
+function saveState() {
+  const snapshot = offCtx.getImageData(0, 0, CANVAS_W, CANVAS_H);
+  undoStack.push(snapshot);
+  if (undoStack.length > MAX_HISTORY) undoStack.shift();
+  redoStack = []; // clear redo on new action
+}
+
+function undo() {
+  if (undoStack.length === 0) return;
+  const current = offCtx.getImageData(0, 0, CANVAS_W, CANVAS_H);
+  redoStack.push(current);
+  const prev = undoStack.pop();
+  offCtx.putImageData(prev, 0, 0);
+  redrawMain();
+}
+
+function redo() {
+  if (redoStack.length === 0) return;
+  const current = offCtx.getImageData(0, 0, CANVAS_W, CANVAS_H);
+  undoStack.push(current);
+  const next = redoStack.pop();
+  offCtx.putImageData(next, 0, 0);
+  redrawMain();
+}
+
+// Keyboard shortcuts
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'z') { e.preventDefault(); undo(); }
+  if ((e.ctrlKey || e.metaKey) && e.key === 'y') { e.preventDefault(); redo(); }
+}); // 'brush', 'marker', 'pen'
 let isDark = true;
 let mouseMode = false;
 let isMouseDrawing = false;
@@ -164,9 +200,13 @@ brushTypeBtns.forEach(btn => {
 
 // ── BUTTONS ──
 document.getElementById('btn-clear').addEventListener('click', () => {
+  saveState();
   offCtx.clearRect(0, 0, CANVAS_W, CANVAS_H);
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 });
+
+document.getElementById('btn-undo').addEventListener('click', undo);
+document.getElementById('btn-redo').addEventListener('click', redo);
 
 document.getElementById('btn-theme').addEventListener('click', () => {
   isDark = !isDark;
@@ -365,7 +405,12 @@ function resetBrushStyle(ctx) {
 }
 
 function drawStroke(x, y, fromMouse = false) {
-  if (lastX === null) { lastX = x; lastY = y; return; }
+  if (lastX === null) {
+    // Save state at stroke start
+    saveState();
+    lastX = x; lastY = y;
+    return;
+  }
 
   const ox1 = lastX / scaleX, oy1 = lastY / scaleY;
   const ox2 = x / scaleX,    oy2 = y / scaleY;
@@ -384,6 +429,7 @@ function drawStroke(x, y, fromMouse = false) {
 }
 
 function eraseAt(x, y) {
+  saveState();
   const bgColor = isDark ? '#0d0d14' : '#f8f6f1';
 
   // Convert to offscreen coords
