@@ -287,6 +287,55 @@ input[type=range]::-webkit-slider-thumb {
 .status-dot.erase { background: #f97316; box-shadow: 0 0 5px #f97316; }
 .status-dot.lift  { background: #a78bfa; box-shadow: 0 0 5px #a78bfa; }
 
+/* MODE TOGGLE */
+#mode-toggle-wrap {
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: center;
+}
+
+.mode-btn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.06);
+  color: rgba(255,255,255,0.8);
+  cursor: pointer;
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.5px;
+  transition: background 0.2s, border-color 0.2s;
+  width: 100%;
+  justify-content: center;
+}
+
+.mode-btn:hover {
+  background: rgba(255,255,255,0.12);
+  border-color: rgba(255,255,255,0.3);
+}
+
+.mode-btn.mouse-mode {
+  background: rgba(167,139,250,0.2);
+  border-color: rgba(167,139,250,0.5);
+  color: #a78bfa;
+}
+
+#mode-icon { font-size: 14px; }
+
+/* BRUSH PREVIEW CANVAS */
+#brush-preview {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 50;
+  display: none;
+}
+
 /* GESTURE GUIDE */
 #gesture-guide {
   position: fixed;
@@ -303,11 +352,46 @@ input[type=range]::-webkit-slider-thumb {
   color: rgba(255,255,255,0.4);
   letter-spacing: 0.5px;
   line-height: 2;
+  min-width: 160px;
 }
 
 .g-row { display: flex; gap: 8px; align-items: center; }
 .g-icon { font-size: 14px; }
 .g-text { color: rgba(255,255,255,0.55); }
+
+/* BRUSH TYPE SELECTOR */
+#brush-types {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  align-items: center;
+}
+
+.brush-type-btn {
+  width: 36px;
+  height: 28px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.04);
+  color: rgba(255,255,255,0.5);
+  cursor: pointer;
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.brush-type-btn:hover {
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+}
+
+.brush-type-btn.active {
+  background: rgba(167,139,250,0.2);
+  border-color: rgba(167,139,250,0.5);
+  color: #a78bfa;
+}
 
 /* VERSION TAG */
 #version-tag {
@@ -363,4 +447,3 @@ input[type=range]::-webkit-slider-thumb {
 }
 
 @keyframes spin { to { transform: rotate(360deg); } }
-
