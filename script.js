@@ -62,6 +62,47 @@ const bpCtx = brushPreview.getContext('2d');
 brushPreview.width = window.innerWidth;
 brushPreview.height = window.innerHeight;
 
+// ── ERASER INDICATOR CANVAS (hand mode) ──
+const eraserIndicator = document.getElementById('eraser-indicator');
+const eiCtx = eraserIndicator.getContext('2d');
+eraserIndicator.width = window.innerWidth;
+eraserIndicator.height = window.innerHeight;
+
+function drawEraserIndicator(x, y) {
+  eiCtx.clearRect(0, 0, eraserIndicator.width, eraserIndicator.height);
+  const r = eraserSize / 2;
+
+  // Outer highlight ring
+  eiCtx.beginPath();
+  eiCtx.arc(x, y, r + 4, 0, Math.PI * 2);
+  eiCtx.strokeStyle = 'rgba(255,255,255,0.5)';
+  eiCtx.lineWidth = 1.5;
+  eiCtx.stroke();
+
+  // Main round eraser circle
+  eiCtx.beginPath();
+  eiCtx.arc(x, y, r, 0, Math.PI * 2);
+  eiCtx.strokeStyle = 'rgba(255,80,80,0.9)';
+  eiCtx.lineWidth = 2;
+  eiCtx.stroke();
+
+  // Semi-transparent fill to show erase area
+  eiCtx.beginPath();
+  eiCtx.arc(x, y, r, 0, Math.PI * 2);
+  eiCtx.fillStyle = 'rgba(255,80,80,0.08)';
+  eiCtx.fill();
+
+  // Center dot
+  eiCtx.beginPath();
+  eiCtx.arc(x, y, 2, 0, Math.PI * 2);
+  eiCtx.fillStyle = 'rgba(255,255,255,0.8)';
+  eiCtx.fill();
+}
+
+function clearEraserIndicator() {
+  eiCtx.clearRect(0, 0, eraserIndicator.width, eraserIndicator.height);
+}
+
 function drawBrushCursor(x, y) {
   bpCtx.clearRect(0, 0, brushPreview.width, brushPreview.height);
   const r = brushSize / 2;
@@ -121,6 +162,8 @@ function resize() {
   skelCanvas.height = window.innerHeight;
   brushPreview.width = window.innerWidth;
   brushPreview.height = window.innerHeight;
+  eraserIndicator.width = window.innerWidth;
+  eraserIndicator.height = window.innerHeight;
   camOverlay.width = 200;
   camOverlay.height = 150;
 
@@ -432,13 +475,18 @@ function eraseAt(x, y) {
   saveState();
   const bgColor = isDark ? '#0d0d14' : '#f8f6f1';
 
-  // Convert to offscreen coords
   const ox = x / scaleX;
   const oy = y / scaleY;
-  const offHalf = (eraserSize / Math.min(scaleX, scaleY)) / 2;
+  const offR = (eraserSize / Math.min(scaleX, scaleY)) / 2;
 
+  // Round eraser using arc clip
+  offCtx.save();
+  offCtx.beginPath();
+  offCtx.arc(ox, oy, offR, 0, Math.PI * 2);
+  offCtx.clip();
   offCtx.fillStyle = bgColor;
-  offCtx.fillRect(ox - offHalf, oy - offHalf, offHalf * 2, offHalf * 2);
+  offCtx.fillRect(ox - offR, oy - offR, offR * 2, offR * 2);
+  offCtx.restore();
 
   redrawMain();
 }
@@ -669,7 +717,6 @@ hands.onResults(results => {
 
   if (!results.multiHandLandmarks || results.multiHandLandmarks.length === 0) {
     graceCnt++;
-    // Grace period — keep last position for a few frames before resetting
     if (graceCnt > GRACE_FRAMES) {
       lastX = null; lastY = null;
       gestureBuffer = [];
@@ -677,6 +724,7 @@ hands.onResults(results => {
       mode = 'lift';
       setStatus('lift');
       resetSmoothing();
+      clearEraserIndicator();
     }
     return;
   }
@@ -736,7 +784,7 @@ hands.onResults(results => {
   drawSkeleton(lms, true, currentColor + 'aa', currentColor);
 
   if (gesture === 'draw') {
-    // Minimum movement threshold
+    clearEraserIndicator();
     if (lastX !== null) {
       const dist = Math.hypot(tipX - lastX, tipY - lastY);
       if (dist < MIN_MOVE) return;
@@ -747,9 +795,11 @@ hands.onResults(results => {
     const rawPinkyY = lms[20].y * canvas.height;
     const smoothedPinky = getPinkySmoothed(rawPinkyX, rawPinkyY);
     if (!smoothedPinky) return;
+    drawEraserIndicator(smoothedPinky.x, smoothedPinky.y);
     eraseAt(smoothedPinky.x, smoothedPinky.y);
     lastX = null; lastY = null;
   } else {
+    clearEraserIndicator();
     lastX = null; lastY = null;
     resetSmoothing();
   }
