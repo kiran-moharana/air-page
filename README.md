@@ -69,6 +69,13 @@ Kiran Kumar Moharana — [@kiran-moharana](https://github.com/kiran-moharana)
 
 ## Changelog
 
+### v2.4
+- Eraser is now round instead of square in hand mode
+- Round eraser indicator shows exact erase area with red outline and soft fill
+- White highlight ring around eraser indicator for visibility on all backgrounds
+- Center dot shows precise erase point
+- Eraser indicator clears automatically when hand is lifted or lost
+
 
 ### v2.3
 - Added Undo and Redo support
