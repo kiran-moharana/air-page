@@ -258,7 +258,37 @@ document.getElementById('btn-theme').addEventListener('click', () => {
   if (vt) vt.className = isDark ? '' : 'light';
 });
 
-document.getElementById('btn-save').addEventListener('click', () => {
+// ── SAVE DIALOG ──
+const saveDialog = document.getElementById('save-dialog');
+const saveFilename = document.getElementById('save-filename');
+const saveCancelBtn = document.getElementById('save-cancel-btn');
+const saveConfirmBtn = document.getElementById('save-confirm-btn');
+
+function openSaveDialog() {
+  saveFilename.value = 'air-canvas';
+  saveDialog.classList.add('open');
+  setTimeout(() => saveFilename.select(), 50);
+}
+
+function closeSaveDialog() {
+  saveDialog.classList.remove('open');
+}
+
+saveCancelBtn.addEventListener('click', closeSaveDialog);
+
+saveDialog.addEventListener('click', e => {
+  if (e.target === saveDialog) closeSaveDialog();
+});
+
+saveFilename.addEventListener('keydown', e => {
+  if (e.key === 'Enter') confirmSave();
+  if (e.key === 'Escape') closeSaveDialog();
+});
+
+async function confirmSave() {
+  const name = (saveFilename.value.trim() || 'air-canvas').replace(/\.png$/i, '');
+  closeSaveDialog();
+
   const tmp = document.createElement('canvas');
   tmp.width = CANVAS_W;
   tmp.height = CANVAS_H;
@@ -266,11 +296,35 @@ document.getElementById('btn-save').addEventListener('click', () => {
   tc.fillStyle = isDark ? '#0d0d14' : '#f8f6f1';
   tc.fillRect(0, 0, CANVAS_W, CANVAS_H);
   tc.drawImage(offscreen, 0, 0);
+
+  // Try native file picker first (Chrome/Edge)
+  if (window.showSaveFilePicker) {
+    try {
+      const fileHandle = await window.showSaveFilePicker({
+        suggestedName: `${name}.png`,
+        types: [{ description: 'PNG Image', accept: { 'image/png': ['.png'] } }]
+      });
+      const writable = await fileHandle.createWritable();
+      const blob = await new Promise(res => tmp.toBlob(res, 'image/png'));
+      await writable.write(blob);
+      await writable.close();
+      return;
+    } catch(e) {
+      // User cancelled native picker — fall through to normal download
+      if (e.name === 'AbortError') return;
+    }
+  }
+
+  // Fallback — normal download with custom filename
   const a = document.createElement('a');
-  a.download = 'air-canvas.png';
-  a.href = tmp.toDataURL();
+  a.download = `${name}.png`;
+  a.href = tmp.toDataURL('image/png');
   a.click();
-});
+}
+
+saveConfirmBtn.addEventListener('click', confirmSave);
+
+document.getElementById('btn-save').addEventListener('click', openSaveDialog);
 
 // ── MODE TOGGLE ──
 const btnMode = document.getElementById('btn-mode');
