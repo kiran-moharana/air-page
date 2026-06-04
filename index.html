@@ -105,11 +105,25 @@
 <!-- BRUSH PREVIEW -->
 <canvas id="brush-preview"></canvas>
 
+<!-- SAVE DIALOG -->
+<div id="save-dialog">
+  <div id="save-dialog-box">
+    <div id="save-dialog-title">Save Drawing</div>
+    <div id="save-dialog-label">Filename</div>
+    <input type="text" id="save-filename" value="air-canvas" spellcheck="false" />
+    <div id="save-dialog-hint">.png will be added automatically</div>
+    <div id="save-dialog-btns">
+      <button id="save-cancel-btn">Cancel</button>
+      <button id="save-confirm-btn">Save</button>
+    </div>
+  </div>
+</div>
+
 <!-- ERASER INDICATOR (hand mode) -->
 <canvas id="eraser-indicator"></canvas>
 
 <!-- MEDIAPIPE CDN -->
-<div id="version-tag">v2.4</div>
+<div id="version-tag">v2.5</div>
 
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
