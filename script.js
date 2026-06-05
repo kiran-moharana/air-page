@@ -79,14 +79,14 @@ function drawEraserIndicator(x, y) {
   eiCtx.lineWidth = 1.5;
   eiCtx.stroke();
 
-  // Main round eraser circle
+  // Main round eraser circle — exact match to erase area
   eiCtx.beginPath();
   eiCtx.arc(x, y, r, 0, Math.PI * 2);
   eiCtx.strokeStyle = 'rgba(255,80,80,0.9)';
   eiCtx.lineWidth = 2;
   eiCtx.stroke();
 
-  // Semi-transparent fill to show erase area
+  // Semi-transparent fill
   eiCtx.beginPath();
   eiCtx.arc(x, y, r, 0, Math.PI * 2);
   eiCtx.fillStyle = 'rgba(255,80,80,0.08)';
@@ -419,7 +419,7 @@ canvas.addEventListener('mousemove', e => {
     if (isMouseErasing) eraseAt(e.clientX, e.clientY);
   } else {
     drawBrushCursor(e.clientX, e.clientY);
-    if (isMouseDrawing) drawStroke(e.clientX, e.clientY);
+    if (isMouseDrawing) drawStroke(e.clientX, e.clientY, true);
   }
 });
 
@@ -434,7 +434,7 @@ canvas.addEventListener('mousedown', e => {
     isMouseDrawing = true;
     isMouseErasing = false;
     lastX = null; lastY = null;
-    drawStroke(e.clientX, e.clientY);
+    drawStroke(e.clientX, e.clientY, true);
   }
 });
 
@@ -518,10 +518,44 @@ function resetBrushStyle(ctx) {
 
 function drawStroke(x, y, fromMouse = false) {
   if (lastX === null) {
-    // Save state at stroke start
     saveState();
+    // Draw a dot on tap/first touch
+    const ox = x / scaleX;
+    const oy = y / scaleY;
+    const offSize = brushSize / Math.min(scaleX, scaleY);
+    offCtx.beginPath();
+    offCtx.arc(ox, oy, offSize / 2, 0, Math.PI * 2);
+    applyBrushStyle(offCtx, offSize);
+    offCtx.fillStyle = currentColor;
+    offCtx.fill();
+    resetBrushStyle(offCtx);
     lastX = x; lastY = y;
+    redrawMain();
     return;
+  }
+
+  // Mouse gap fix — interpolate between points for fast movement
+  if (fromMouse) {
+    const dist = Math.hypot(x - lastX, y - lastY);
+    if (dist > 4) {
+      const steps = Math.ceil(dist / 4);
+      for (let i = 1; i <= steps; i++) {
+        const ix = lastX + (x - lastX) * (i / steps);
+        const iy = lastY + (y - lastY) * (i / steps);
+        const ox = ix / scaleX, oy = iy / scaleY;
+        const offSize = brushSize / Math.min(scaleX, scaleY);
+        offCtx.beginPath();
+        offCtx.moveTo(ox, oy);
+        offCtx.lineTo(ox, oy);
+        offCtx.strokeStyle = currentColor;
+        applyBrushStyle(offCtx, offSize);
+        offCtx.stroke();
+        resetBrushStyle(offCtx);
+      }
+      lastX = x; lastY = y;
+      redrawMain();
+      return;
+    }
   }
 
   const ox1 = lastX / scaleX, oy1 = lastY / scaleY;
@@ -544,11 +578,12 @@ function eraseAt(x, y) {
   saveState();
   const bgColor = isDark ? '#0d0d14' : '#f8f6f1';
 
+  // Convert screen coords to offscreen
   const ox = x / scaleX;
   const oy = y / scaleY;
-  const offR = (eraserSize / Math.min(scaleX, scaleY)) / 2;
+  // Convert screen-space eraser radius to offscreen radius
+  const offR = (eraserSize / 2) / Math.min(scaleX, scaleY);
 
-  // Round eraser using arc clip
   offCtx.save();
   offCtx.beginPath();
   offCtx.arc(ox, oy, offR, 0, Math.PI * 2);
@@ -661,10 +696,10 @@ function landmarksVisible(raw) {
 }
 
 // ── ADVANCED SMOOTHING ──
-const BUFFER_SIZE   = 7;
-const LERP_FACTOR   = 0.3;
-const MIN_MOVE      = 3;
-const MAX_SPEED     = 180;
+const BUFFER_SIZE   = 4;      // reduced from 7 — less lag
+const LERP_FACTOR   = 0.5;    // increased from 0.3 — more responsive
+const MIN_MOVE      = 2;      // reduced from 3 — more precise
+const MAX_SPEED     = 200;    // increased from 180 — less aggressive filtering
 const GRACE_FRAMES  = 3;
 
 let posBuffer  = [];
@@ -816,17 +851,16 @@ hands.onResults(results => {
   const rawGesture = detectGesture(lms);
   const gesture    = getConfirmedGesture(rawGesture);
 
-  // Clear opposite buffer on gesture switch — keeps buffers clean
+  // Clear opposite buffer on gesture switch — only clear if gesture is stable
   if (gesture !== mode) {
-    if (gesture === 'draw') {
-      pinkyBuffer = []; pSmoothX = null; pSmoothY = null;
-      lastPinkyRawX = null; lastPinkyRawY = null;
-    } else if (gesture === 'erase') {
-      posBuffer = []; smoothX = null; smoothY = null;
-      lastRawX = null; lastRawY = null;
+    if (gesture === 'erase') {
+      // Switching to erase — only clear lastX/lastY not the whole buffer
       lastX = null; lastY = null;
+    } else if (gesture === 'draw') {
+      // Switching to draw — only clear pinky tip vars
+      pSmoothX = null; pSmoothY = null;
+      lastPinkyRawX = null; lastPinkyRawY = null;
     } else if (gesture === 'lift') {
-      // Reset draw position cleanly on confirmed lift
       lastX = null; lastY = null;
     }
   }
@@ -834,9 +868,14 @@ hands.onResults(results => {
   mode = gesture;
   setStatus(gesture);
 
-  // Get raw tip position
-  const rawTipX = lms[8].x * canvas.width;
-  const rawTipY = lms[8].y * canvas.height;
+  // Get raw tip position with corner padding
+  // Map landmarks from [PADDING, 1-PADDING] range to full canvas
+  const PADDING = 0.05; // 5% padding on each edge
+  const clamp = (v, min, max) => Math.min(Math.max(v, min), max);
+  const mappedX = (clamp(lms[8].x, PADDING, 1 - PADDING) - PADDING) / (1 - 2 * PADDING);
+  const mappedY = (clamp(lms[8].y, PADDING, 1 - PADDING) - PADDING) / (1 - 2 * PADDING);
+  const rawTipX = mappedX * canvas.width;
+  const rawTipY = mappedY * canvas.height;
 
   // Apply smoothing
   const smoothed = getSmoothed(rawTipX, rawTipY);
