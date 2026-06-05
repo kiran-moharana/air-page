@@ -69,6 +69,12 @@ Kiran Kumar Moharana — [@kiran-moharana](https://github.com/kiran-moharana)
 
 ## Changelog
 
+### v2.6
+- Full UI redesign — toolbar moved to top of screen 
+- Toolbar grouped into sections — Color, Brush, Eraser, Tools, Mode, Canvas, Status
+- Status indicator moved inside toolbar — no longer blocks drawing area
+- Eraser toggle button added for trackpad users 
+
 ### v2.5
 - Save button now opens a clean dialog asking for filename before downloading
 - User can type any filename — .png is added automatically
