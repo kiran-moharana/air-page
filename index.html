@@ -17,51 +17,110 @@
 <canvas id="canvas" class="dark"></canvas>
 <canvas id="skeleton-canvas"></canvas>
 
-<!-- TOOLBAR -->
+<!-- TOP TOOLBAR -->
 <div id="toolbar">
-  <div class="tb-label">Color</div>
-  <div id="color-presets"></div>
 
-  <div style="position:relative;width:28px;height:28px;margin:0 auto;">
-    <div class="color-dot" id="custom-dot" title="Custom color"
-      style="background: conic-gradient(red,yellow,lime,cyan,blue,magenta,red); border-style: dashed;">
+  <!-- COLOR GROUP -->
+  <div class="tb-group">
+    <div class="tb-group-label">Color</div>
+    <div class="tb-group-content">
+      <div id="color-presets"></div>
+      <div style="position:relative;width:24px;height:24px;">
+        <div class="color-dot" id="custom-dot" title="Custom color"
+          style="background:conic-gradient(red,yellow,lime,cyan,blue,magenta,red);border-style:dashed;width:24px;height:24px;">
+        </div>
+        <input type="color" id="custom-color" value="#ff6b6b"
+          style="position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer;border-radius:50%;">
+      </div>
     </div>
-    <input type="color" id="custom-color" value="#ff6b6b"
-      style="position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer;border-radius:50%;">
   </div>
 
-  <div class="tb-divider"></div>
+  <div class="tb-sep"></div>
 
-  <div class="tb-label">Brush</div>
-  <div class="slider-wrap">
-    <div class="slider-val" id="brush-val">8</div>
-    <input type="range" id="brush-size" min="2" max="40" value="8">
+  <!-- BRUSH GROUP -->
+  <div class="tb-group">
+    <div class="tb-group-label">Brush</div>
+    <div class="tb-group-content">
+      <div class="tb-group-row">
+        <div id="brush-types">
+          <button class="brush-type-btn active" id="btn-brush" title="Brush">B</button>
+          <button class="brush-type-btn" id="btn-marker" title="Marker">M</button>
+          <button class="brush-type-btn" id="btn-pen" title="Pen">P</button>
+        </div>
+      </div>
+      <div class="tb-group-row">
+        <span class="slider-label">Size</span>
+        <input type="range" id="brush-size" min="2" max="40" value="8" class="h-slider">
+        <span class="slider-val" id="brush-val">8</span>
+      </div>
+    </div>
   </div>
 
-  <div class="tb-divider"></div>
+  <div class="tb-sep"></div>
 
-  <div class="tb-label">Eraser</div>
-  <div class="slider-wrap">
-    <div class="slider-val" id="eraser-val">24</div>
-    <input type="range" id="eraser-size" min="8" max="80" value="24">
+  <!-- ERASER GROUP -->
+  <div class="tb-group">
+    <div class="tb-group-label">Eraser</div>
+    <div class="tb-group-content">
+      <div class="tb-group-row">
+        <button class="tb-btn" id="btn-eraser" title="Toggle Eraser">E</button>
+      </div>
+      <div class="tb-group-row">
+        <span class="slider-label">Size</span>
+        <input type="range" id="eraser-size" min="8" max="80" value="24" class="h-slider">
+        <span class="slider-val" id="eraser-val">24</span>
+      </div>
+    </div>
   </div>
 
-  <div class="tb-divider"></div>
+  <div class="tb-sep"></div>
 
-  <div class="tb-label">Type</div>
-  <div id="brush-types">
-    <button class="brush-type-btn active" id="btn-brush" title="Brush">B</button>
-    <button class="brush-type-btn" id="btn-marker" title="Marker">M</button>
-    <button class="brush-type-btn" id="btn-pen" title="Pen">P</button>
+  <!-- TOOLS GROUP -->
+  <div class="tb-group">
+    <div class="tb-group-label">Tools</div>
+    <div class="tb-group-content tb-group-row">
+      <button class="tb-btn" id="btn-undo" title="Undo (Ctrl+Z)">↩</button>
+      <button class="tb-btn" id="btn-redo" title="Redo (Ctrl+Y)">↪</button>
+      <button class="tb-btn" id="btn-clear" title="Clear canvas">✕</button>
+    </div>
   </div>
 
-  <div class="tb-divider"></div>
+  <div class="tb-sep"></div>
 
-  <button class="tb-btn" id="btn-clear" title="Clear canvas">✕</button>
-  <button class="tb-btn" id="btn-undo" title="Undo (Ctrl+Z)">↩</button>
-  <button class="tb-btn" id="btn-redo" title="Redo (Ctrl+Y)">↪</button>
-  <button class="tb-btn" id="btn-theme" title="Toggle theme">◐</button>
-  <button class="tb-btn" id="btn-save" title="Save image">↓</button>
+  <!-- MODE GROUP -->
+  <div class="tb-group">
+    <div class="tb-group-label">Mode</div>
+    <div class="tb-group-content">
+      <button id="btn-mode" class="mode-btn hand-mode" title="Switch mode">
+        <span id="mode-icon">✋</span>
+        <span id="mode-label">Hand</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="tb-sep"></div>
+
+  <!-- CANVAS GROUP -->
+  <div class="tb-group">
+    <div class="tb-group-label">Canvas</div>
+    <div class="tb-group-content tb-group-row">
+      <button class="tb-btn" id="btn-theme" title="Toggle theme">◐</button>
+      <button class="tb-btn" id="btn-save" title="Save image">↓</button>
+    </div>
+  </div>
+
+  <!-- STATUS INDICATOR (inside toolbar) -->
+  <div class="tb-sep"></div>
+  <div class="tb-group">
+    <div class="tb-group-label">Status</div>
+    <div class="tb-group-content">
+      <div id="status-inline">
+        <div class="status-dot" id="s-dot"></div>
+        <span id="s-text">Loading...</span>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <!-- WEBCAM -->
@@ -76,33 +135,23 @@
   </div>
 </div>
 
-<!-- STATUS -->
-<div id="status">
-  <div class="status-item">
-    <div class="status-dot" id="s-dot"></div>
-    <span id="s-text">Initializing...</span>
-  </div>
-  <div class="status-item" style="color:rgba(255,255,255,0.25)">
-    ☝ draw &nbsp;|&nbsp; 🖐 lift &nbsp;|&nbsp; 🤙 erase
+<!-- INFO BUTTON -->
+<button id="btn-info" title="How to use">?</button>
+
+<!-- INFO OVERLAY -->
+<div id="info-overlay">
+  <div id="info-box">
+    <div id="info-title">How to use Air Canvas</div>
+    <div class="info-row"><span class="info-gesture">Index finger only</span><span class="info-desc">Draw</span></div>
+    <div class="info-row"><span class="info-gesture">Open palm</span><span class="info-desc">Lift pen</span></div>
+    <div class="info-row"><span class="info-gesture">Pinky only</span><span class="info-desc">Erase</span></div>
+    <div class="info-row"><span class="info-gesture">Left click drag</span><span class="info-desc">Draw (Mouse Mode)</span></div>
+    <div class="info-row"><span class="info-gesture">Right click drag</span><span class="info-desc">Erase (Mouse Mode)</span></div>
+    <button id="info-close-btn">Got it</button>
   </div>
 </div>
 
-<!-- GESTURE GUIDE + MODE TOGGLE -->
-<div id="gesture-guide">
-  <div id="mode-toggle-wrap">
-    <button id="btn-mode" class="mode-btn hand-mode" title="Switch mode">
-      <span id="mode-icon">✋</span>
-      <span id="mode-label">Hand Mode</span>
-    </button>
-  </div>
-  <div id="gesture-rows">
-    <div class="g-row"><span class="g-icon">☝️</span><span class="g-text">Index only → Draw</span></div>
-    <div class="g-row"><span class="g-icon">🖐️</span><span class="g-text">Open palm → Lift pen</span></div>
-    <div class="g-row"><span class="g-icon">🤙</span><span class="g-text">Pinky only → Erase</span></div>
-  </div>
-</div>
-
-<!-- BRUSH PREVIEW -->
+<!-- BRUSH TYPE PREVIEW -->
 <canvas id="brush-preview"></canvas>
 
 <!-- SAVE DIALOG -->
@@ -119,11 +168,10 @@
   </div>
 </div>
 
-<!-- ERASER INDICATOR (hand mode) -->
+<!-- ERASER INDICATOR -->
 <canvas id="eraser-indicator"></canvas>
 
-<!-- MEDIAPIPE CDN -->
-<div id="version-tag">v2.5</div>
+<div id="version-tag">v2.6</div>
 
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
