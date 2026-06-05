@@ -330,7 +330,6 @@ document.getElementById('btn-save').addEventListener('click', openSaveDialog);
 const btnMode = document.getElementById('btn-mode');
 const modeIcon = document.getElementById('mode-icon');
 const modeLabel = document.getElementById('mode-label');
-const gestureRows = document.getElementById('gesture-rows');
 const skelCanvasEl = document.getElementById('skeleton-canvas');
 
 function setMouseMode(val) {
@@ -338,16 +337,14 @@ function setMouseMode(val) {
   if (mouseMode) {
     btnMode.className = 'mode-btn mouse-mode';
     modeIcon.textContent = '🖱️';
-    modeLabel.textContent = 'Mouse Mode';
-    gestureRows.style.display = 'none';
+    modeLabel.textContent = 'Mouse';
     skelCanvasEl.style.display = 'none';
     brushPreview.style.display = 'block';
     canvas.style.cursor = 'none';
   } else {
     btnMode.className = 'mode-btn hand-mode';
     modeIcon.textContent = '✋';
-    modeLabel.textContent = 'Hand Mode';
-    gestureRows.style.display = 'block';
+    modeLabel.textContent = 'Hand';
     skelCanvasEl.style.display = 'block';
     brushPreview.style.display = 'none';
     canvas.style.cursor = 'crosshair';
@@ -356,6 +353,26 @@ function setMouseMode(val) {
 }
 
 btnMode.addEventListener('click', () => setMouseMode(!mouseMode));
+
+// ── ERASER TOGGLE (for trackpad users) ──
+let eraserMode = false;
+const btnEraser = document.getElementById('btn-eraser');
+
+btnEraser.addEventListener('click', () => {
+  eraserMode = !eraserMode;
+  btnEraser.classList.toggle('active-tool', eraserMode);
+});
+
+// ── INFO BUTTON ──
+const btnInfo = document.getElementById('btn-info');
+const infoOverlay = document.getElementById('info-overlay');
+const infoCloseBtn = document.getElementById('info-close-btn');
+
+btnInfo.addEventListener('click', () => infoOverlay.classList.add('open'));
+infoCloseBtn.addEventListener('click', () => infoOverlay.classList.remove('open'));
+infoOverlay.addEventListener('click', e => {
+  if (e.target === infoOverlay) infoOverlay.classList.remove('open');
+});
 
 let isMouseErasing = false;
 
@@ -397,7 +414,7 @@ canvas.addEventListener('mouseleave', () => {
 
 canvas.addEventListener('mousemove', e => {
   if (!mouseMode) return;
-  if (isMouseErasing || e.buttons === 2) {
+  if (isMouseErasing || e.buttons === 2 || (eraserMode && e.buttons === 1)) {
     drawEraserCursor(e.clientX, e.clientY);
     if (isMouseErasing) eraseAt(e.clientX, e.clientY);
   } else {
@@ -408,14 +425,12 @@ canvas.addEventListener('mousemove', e => {
 
 canvas.addEventListener('mousedown', e => {
   if (!mouseMode) return;
-  if (e.button === 2) {
-    // Right click — erase
+  if (e.button === 2 || (eraserMode && e.button === 0)) {
     isMouseErasing = true;
     isMouseDrawing = false;
     lastX = null; lastY = null;
     eraseAt(e.clientX, e.clientY);
   } else if (e.button === 0) {
-    // Left click — draw
     isMouseDrawing = true;
     isMouseErasing = false;
     lastX = null; lastY = null;
@@ -425,7 +440,7 @@ canvas.addEventListener('mousedown', e => {
 
 canvas.addEventListener('mouseup', e => {
   if (!mouseMode) return;
-  if (e.button === 2) { isMouseErasing = false; }
+  if (e.button === 2 || eraserMode) { isMouseErasing = false; }
   if (e.button === 0) { isMouseDrawing = false; lastX = null; lastY = null; }
 });
 
