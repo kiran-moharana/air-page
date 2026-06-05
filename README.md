@@ -69,6 +69,15 @@ Kiran Kumar Moharana — [@kiran-moharana](https://github.com/kiran-moharana)
 
 ## Changelog
 
+### v2.7
+- Reduced smoothing buffer so the drawing feels more responsive
+- Mouse gap fix — points are interpolated between fast mouse movements 
+- Dot drawing on tap — single tap now places a dot instead of nothing
+- Corner drawing fix — 5 percent coordinate padding added so hand can reach all screen areas
+- Eraser size now matches visual indicator exactly — what you see is what gets erased
+- Hand stability improved — gesture switch no longer resets full smoothing buffers aggressively
+- Eraser toggle button now fully integrated for trackpad users in mouse mode
+
 ### v2.6
 - Full UI redesign — toolbar moved to top of screen 
 - Toolbar grouped into sections — Color, Brush, Eraser, Tools, Mode, Canvas, Status
