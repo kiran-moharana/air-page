@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Air Canvas — Draw</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<div id="loading-overlay">
+  <div class="loading-title">AIR CANVAS</div>
+  <div class="spinner"></div>
+  <div class="loading-sub" id="loading-msg">Loading MediaPipe...</div>
+</div>
+
+<canvas id="canvas" class="dark"></canvas>
+<canvas id="skeleton-canvas"></canvas>
+
+<!-- TOP TOOLBAR -->
+<div id="toolbar">
+
+  <!-- COLOR GROUP -->
+  <div class="tb-group">
+    <div class="tb-group-label">Color</div>
+    <div class="tb-group-content">
+      <div id="color-presets"></div>
+      <div style="position:relative;width:24px;height:24px;">
+        <div class="color-dot" id="custom-dot" title="Custom color"
+          style="background:conic-gradient(red,yellow,lime,cyan,blue,magenta,red);border-style:dashed;width:24px;height:24px;">
+        </div>
+        <input type="color" id="custom-color" value="#ff6b6b"
+          style="position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer;border-radius:50%;">
+      </div>
+    </div>
+  </div>
+
+  <div class="tb-sep"></div>
+
+  <!-- BRUSH GROUP -->
+  <div class="tb-group">
+    <div class="tb-group-label">Brush</div>
+    <div class="tb-group-content">
+      <div class="tb-group-row">
+        <div id="brush-types">
+          <button class="brush-type-btn active" id="btn-brush" title="Brush">B</button>
+          <button class="brush-type-btn" id="btn-marker" title="Marker">M</button>
+          <button class="brush-type-btn" id="btn-pen" title="Pen">P</button>
+        </div>
+      </div>
+      <div class="tb-group-row">
+        <span class="slider-label">Size</span>
+        <input type="range" id="brush-size" min="2" max="40" value="8" class="h-slider">
+        <span class="slider-val" id="brush-val">8</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="tb-sep"></div>
+
+  <!-- ERASER GROUP -->
+  <div class="tb-group">
+    <div class="tb-group-label">Eraser</div>
+    <div class="tb-group-content">
+      <div class="tb-group-row">
+        <button class="tb-btn" id="btn-eraser" title="Toggle Eraser">E</button>
+      </div>
+      <div class="tb-group-row">
+        <span class="slider-label">Size</span>
+        <input type="range" id="eraser-size" min="8" max="80" value="24" class="h-slider">
+        <span class="slider-val" id="eraser-val">24</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="tb-sep"></div>
+
+  <!-- TOOLS GROUP -->
+  <div class="tb-group">
+    <div class="tb-group-label">Tools</div>
+    <div class="tb-group-content tb-group-row">
+      <button class="tb-btn" id="btn-undo" title="Undo (Ctrl+Z)">↩</button>
+      <button class="tb-btn" id="btn-redo" title="Redo (Ctrl+Y)">↪</button>
+      <button class="tb-btn" id="btn-clear" title="Clear canvas">✕</button>
+    </div>
+  </div>
+
+  <div class="tb-sep"></div>
+
+  <!-- MODE GROUP -->
+  <div class="tb-group">
+    <div class="tb-group-label">Mode</div>
+    <div class="tb-group-content">
+      <button id="btn-mode" class="mode-btn hand-mode" title="Switch mode">
+        <span id="mode-icon">✋</span>
+        <span id="mode-label">Hand</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="tb-sep"></div>
+
+  <!-- CANVAS GROUP -->
+  <div class="tb-group">
+    <div class="tb-group-label">Canvas</div>
+    <div class="tb-group-content tb-group-row">
+      <button class="tb-btn" id="btn-theme" title="Toggle theme">◐</button>
+      <button class="tb-btn" id="btn-save" title="Save image">↓</button>
+    </div>
+  </div>
+
+  <!-- STATUS INDICATOR (inside toolbar) -->
+  <div class="tb-sep"></div>
+  <div class="tb-group">
+    <div class="tb-group-label">Status</div>
+    <div class="tb-group-content">
+      <div id="status-inline">
+        <div class="status-dot" id="s-dot"></div>
+        <span id="s-text">Loading...</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- WEBCAM -->
+<div id="cam-wrap" style="bottom:20px; right:20px;">
+  <div id="cam-header">
+    <span class="cam-title">HAND CAM</span>
+    <div class="cam-dot"></div>
+  </div>
+  <div id="cam-video-wrap">
+    <video id="webcam" autoplay playsinline muted></video>
+    <canvas id="cam-overlay"></canvas>
+  </div>
+</div>
+
+<!-- INFO BUTTON -->
+<button id="btn-info" title="How to use">?</button>
+
+<!-- INFO OVERLAY -->
+<div id="info-overlay">
+  <div id="info-box">
+    <div id="info-title">How to use Air Canvas</div>
+    <div class="info-row"><span class="info-gesture">Index finger only</span><span class="info-desc">Draw</span></div>
+    <div class="info-row"><span class="info-gesture">Open palm</span><span class="info-desc">Lift pen</span></div>
+    <div class="info-row"><span class="info-gesture">Pinky only</span><span class="info-desc">Erase</span></div>
+    <div class="info-row"><span class="info-gesture">Left click drag</span><span class="info-desc">Draw (Mouse Mode)</span></div>
+    <div class="info-row"><span class="info-gesture">Right click drag</span><span class="info-desc">Erase (Mouse Mode)</span></div>
+    <button id="info-close-btn">Got it</button>
+  </div>
+</div>
+
+<!-- BRUSH TYPE PREVIEW -->
+<canvas id="brush-preview"></canvas>
+
+<!-- SAVE DIALOG -->
+<div id="save-dialog">
+  <div id="save-dialog-box">
+    <div id="save-dialog-title">Save Drawing</div>
+    <div id="save-dialog-label">Filename</div>
+    <input type="text" id="save-filename" value="air-canvas" spellcheck="false" />
+    <div id="save-dialog-hint">.png will be added automatically</div>
+    <div id="save-dialog-btns">
+      <button id="save-cancel-btn">Cancel</button>
+      <button id="save-confirm-btn">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ERASER INDICATOR -->
+<canvas id="eraser-indicator"></canvas>
+
+<div id="version-tag">v3.0</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+
+<script src="script.js"></script>
+
+</body>
+</html>
