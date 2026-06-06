@@ -69,6 +69,13 @@ Kiran Kumar Moharana — [@kiran-moharana](https://github.com/kiran-moharana)
 
 ## Changelog
 
+### v3.0
+- Added landing page 
+- Canvas tool moved to canvas.html
+- Landing page has hero section with project title, description, and Launch Canvas button
+- Feature cards showing all major capabilities
+- Separate landing.css for landing page styles
+
 ### v2.7
 - Reduced smoothing buffer so the drawing feels more responsive
 - Mouse gap fix — points are interpolated between fast mouse movements 
