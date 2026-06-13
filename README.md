@@ -69,6 +69,12 @@ Kiran Kumar Moharana — [@kiran-moharana](https://github.com/kiran-moharana)
 
 ## Changelog
 
+### v3.1
+- Added gesture tutorial
+- 3-slide animated tutorial covering all 3 gestures
+- Cartoon hand drawn using Canvas API — no image assets needed
+- Start Drawing button triggers camera permission request
+
 ### v3.0
 - Added landing page 
 - Canvas tool moved to canvas.html
