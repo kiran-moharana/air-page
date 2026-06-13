@@ -568,6 +568,144 @@ canvas.dark  { background: #0d0d14; }
 
 #version-tag.light { color: #000000; }
 
+/* GESTURE TUTORIAL SLIDER */
+#gesture-tutorial {
+  position: fixed;
+  inset: 0;
+  background: #07070f;
+  z-index: 99999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 40px;
+}
+
+.tutorial-slide {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  animation: slideIn 0.4s ease;
+}
+
+.tutorial-slide.active { display: flex; }
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.slide-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  max-width: 400px;
+}
+
+.slide-animation {
+  width: 260px;
+  height: 260px;
+  border-radius: 24px;
+  background: rgba(167,139,250,0.06);
+  border: 1px solid rgba(167,139,250,0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.anim-canvas { display: block; }
+
+.slide-title {
+  font-family: 'Space Mono', monospace;
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.5px;
+}
+
+.slide-desc {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  color: rgba(255,255,255,0.45);
+  line-height: 1.6;
+}
+
+/* CONTROLS */
+.tutorial-controls {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.tutorial-arrow {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.04);
+  color: rgba(255,255,255,0.7);
+  font-size: 18px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tutorial-arrow:hover:not(:disabled) {
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+}
+
+.tutorial-arrow:disabled {
+  opacity: 0.25;
+  cursor: not-allowed;
+}
+
+.tutorial-dots {
+  display: flex;
+  gap: 8px;
+}
+
+.tutorial-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.2);
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.tutorial-dot.active {
+  background: #a78bfa;
+  transform: scale(1.3);
+}
+
+/* START BUTTON */
+#tutorial-start-btn {
+  padding: 14px 48px;
+  background: #a78bfa;
+  color: #07070f;
+  font-family: 'Space Mono', monospace;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  border: none;
+  border-radius: 100px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+  box-shadow: 0 0 30px rgba(167,139,250,0.3);
+}
+
+#tutorial-start-btn:hover {
+  background: #c4b5fd;
+  transform: translateY(-2px);
+  box-shadow: 0 0 50px rgba(167,139,250,0.5);
+}
+
 /* LOADING OVERLAY */
 #loading-overlay {
   position: fixed;
