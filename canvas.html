@@ -8,6 +8,56 @@
 </head>
 <body>
 
+<div id="gesture-tutorial">
+
+  <!-- SLIDE 1 — DRAW -->
+  <div class="tutorial-slide active" id="slide-1">
+    <div class="slide-content">
+      <div class="slide-animation" id="anim-1">
+        <canvas class="anim-canvas" id="anim-canvas-1" width="260" height="260"></canvas>
+      </div>
+      <div class="slide-title">Draw with your index finger</div>
+      <div class="slide-desc">Point only your index finger up and move your hand to draw on the canvas.</div>
+    </div>
+  </div>
+
+  <!-- SLIDE 2 — LIFT -->
+  <div class="tutorial-slide" id="slide-2">
+    <div class="slide-content">
+      <div class="slide-animation" id="anim-2">
+        <canvas class="anim-canvas" id="anim-canvas-2" width="260" height="260"></canvas>
+      </div>
+      <div class="slide-title">Open palm to lift the pen</div>
+      <div class="slide-desc">Spread all your fingers open to pause drawing and reposition your hand.</div>
+    </div>
+  </div>
+
+  <!-- SLIDE 3 — ERASE -->
+  <div class="tutorial-slide" id="slide-3">
+    <div class="slide-content">
+      <div class="slide-animation" id="anim-3">
+        <canvas class="anim-canvas" id="anim-canvas-3" width="260" height="260"></canvas>
+      </div>
+      <div class="slide-title">Pinky finger to erase</div>
+      <div class="slide-desc">Hold up only your pinky finger and move it over your drawing to erase.</div>
+    </div>
+  </div>
+
+  <!-- CONTROLS -->
+  <div class="tutorial-controls">
+    <button class="tutorial-arrow" id="tutorial-prev" disabled>&#8592;</button>
+    <div class="tutorial-dots">
+      <div class="tutorial-dot active" data-slide="0"></div>
+      <div class="tutorial-dot" data-slide="1"></div>
+      <div class="tutorial-dot" data-slide="2"></div>
+    </div>
+    <button class="tutorial-arrow" id="tutorial-next">&#8594;</button>
+  </div>
+
+  <button id="tutorial-start-btn" style="display:none;">Start Drawing</button>
+
+</div>
+
 <div id="loading-overlay">
   <div class="loading-title">AIR CANVAS</div>
   <div class="spinner"></div>
@@ -171,7 +221,7 @@
 <!-- ERASER INDICATOR -->
 <canvas id="eraser-indicator"></canvas>
 
-<div id="version-tag">v3.0</div>
+<div id="version-tag">v3.1</div>
 
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
