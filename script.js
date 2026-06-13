@@ -943,4 +943,203 @@ async function startCamera() {
   }
 }
 
-startCamera();
+// ── GESTURE TUTORIAL SLIDER ──
+let currentSlide = 0;
+const totalSlides = 3;
+const slides = document.querySelectorAll('.tutorial-slide');
+const dots = document.querySelectorAll('.tutorial-dot');
+const prevBtn = document.getElementById('tutorial-prev');
+const nextBtn = document.getElementById('tutorial-next');
+const startBtn = document.getElementById('tutorial-start-btn');
+const tutorial = document.getElementById('gesture-tutorial');
+
+function goToSlide(n) {
+  slides[currentSlide].classList.remove('active');
+  dots[currentSlide].classList.remove('active');
+  currentSlide = n;
+  slides[currentSlide].classList.add('active');
+  dots[currentSlide].classList.add('active');
+  prevBtn.disabled = currentSlide === 0;
+  nextBtn.style.display = currentSlide === totalSlides - 1 ? 'none' : 'flex';
+  startBtn.style.display = currentSlide === totalSlides - 1 ? 'block' : 'none';
+}
+
+prevBtn.addEventListener('click', () => { if (currentSlide > 0) goToSlide(currentSlide - 1); });
+nextBtn.addEventListener('click', () => { if (currentSlide < totalSlides - 1) goToSlide(currentSlide + 1); });
+dots.forEach((dot, i) => dot.addEventListener('click', () => goToSlide(i)));
+
+startBtn.addEventListener('click', () => {
+  tutorial.style.opacity = '0';
+  tutorial.style.transition = 'opacity 0.5s';
+  setTimeout(() => {
+    tutorial.remove();
+    startCamera();
+  }, 500);
+});
+
+// ── CARTOON HAND ANIMATIONS ──
+// Shared hand drawing function
+function drawHand(ctx, cx, cy, scale, fingers) {
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.scale(scale, scale);
+
+  // Palm
+  ctx.beginPath();
+  ctx.ellipse(0, 20, 28, 32, 0, 0, Math.PI * 2);
+  ctx.fillStyle = '#f5c89a';
+  ctx.fill();
+  ctx.strokeStyle = '#e0a870';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // Finger positions [x, y, height, up]
+  const fingerDefs = [
+    { x: -20, baseY: -8,  h: 38, up: fingers[0] }, // index
+    { x: -7,  baseY: -14, h: 42, up: fingers[1] }, // middle
+    { x: 7,   baseY: -12, h: 40, up: fingers[2] }, // ring
+    { x: 20,  baseY: -6,  h: 34, up: fingers[3] }, // pinky
+  ];
+
+  fingerDefs.forEach(f => {
+    const tipY = f.up ? f.baseY - f.h : f.baseY - 10;
+    ctx.beginPath();
+    ctx.roundRect(f.x - 7, tipY, 14, f.h - (f.up ? 0 : f.h - 18), 7);
+    ctx.fillStyle = '#f5c89a';
+    ctx.fill();
+    ctx.strokeStyle = '#e0a870';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Fingertip circle for up fingers
+    if (f.up) {
+      ctx.beginPath();
+      ctx.arc(f.x, tipY + 6, 7, 0, Math.PI * 2);
+      ctx.fillStyle = '#e0a870';
+      ctx.fill();
+    }
+  });
+
+  // Thumb
+  ctx.beginPath();
+  ctx.ellipse(-36, 10, 10, 16, -0.4, 0, Math.PI * 2);
+  ctx.fillStyle = '#f5c89a';
+  ctx.fill();
+  ctx.strokeStyle = '#e0a870';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+// Animation 1 — Index finger drawing
+const c1 = document.getElementById('anim-canvas-1');
+const cx1 = c1.getContext('2d');
+let t1 = 0;
+let trail1 = [];
+
+function animSlide1() {
+  cx1.clearRect(0, 0, 260, 260);
+  t1 += 0.025;
+
+  // Draw trail
+  const px = 80 + Math.sin(t1) * 60;
+  const py = 90 + Math.sin(t1 * 1.5) * 30;
+  trail1.push({ x: px, y: py });
+  if (trail1.length > 60) trail1.shift();
+
+  if (trail1.length > 1) {
+    cx1.beginPath();
+    cx1.moveTo(trail1[0].x, trail1[0].y);
+    trail1.forEach(p => cx1.lineTo(p.x, p.y));
+    cx1.strokeStyle = '#a78bfa';
+    cx1.lineWidth = 3;
+    cx1.lineCap = 'round';
+    cx1.lineJoin = 'round';
+    cx1.stroke();
+  }
+
+  // Fingertip dot
+  cx1.beginPath();
+  cx1.arc(px, py, 6, 0, Math.PI * 2);
+  cx1.fillStyle = '#a78bfa';
+  cx1.fill();
+
+  // Hand — index up only
+  drawHand(cx1, 130, 185, 0.85, [true, false, false, false]);
+  requestAnimationFrame(animSlide1);
+}
+animSlide1();
+
+// Animation 2 — Open palm lift
+const c2 = document.getElementById('anim-canvas-2');
+const cx2 = c2.getContext('2d');
+let t2 = 0;
+
+function animSlide2() {
+  cx2.clearRect(0, 0, 260, 260);
+  t2 += 0.02;
+
+  // Floating upward animation
+  const floatY = Math.sin(t2) * 12;
+
+  // Pause indicator lines
+  cx2.globalAlpha = 0.3 + Math.abs(Math.sin(t2)) * 0.4;
+  cx2.strokeStyle = '#22c55e';
+  cx2.lineWidth = 2;
+  cx2.setLineDash([6, 4]);
+  [-30, 0, 30].forEach(x => {
+    cx2.beginPath();
+    cx2.moveTo(130 + x, 60 + floatY);
+    cx2.lineTo(130 + x, 80 + floatY);
+    cx2.stroke();
+  });
+  cx2.setLineDash([]);
+  cx2.globalAlpha = 1;
+
+  // Hand — all fingers up
+  drawHand(cx2, 130, 175 + floatY, 0.85, [true, true, true, true]);
+  requestAnimationFrame(animSlide2);
+}
+animSlide2();
+
+// Animation 3 — Pinky erasing
+const c3 = document.getElementById('anim-canvas-3');
+const cx3 = c3.getContext('2d');
+let t3 = 0;
+
+function animSlide3() {
+  cx3.clearRect(0, 0, 260, 260);
+  t3 += 0.03;
+
+  const px = 80 + Math.sin(t3) * 60;
+  const py = 100;
+
+  // Fake drawing to erase
+  cx3.globalAlpha = 0.3;
+  cx3.fillStyle = '#a78bfa';
+  cx3.beginPath();
+  cx3.arc(120, 95, 25, 0, Math.PI * 2);
+  cx3.fill();
+  cx3.globalAlpha = 1;
+
+  // Eraser area
+  cx3.save();
+  cx3.beginPath();
+  cx3.arc(px, py, 18, 0, Math.PI * 2);
+  cx3.clip();
+  cx3.clearRect(px - 20, py - 20, 40, 40);
+  cx3.restore();
+
+  // Eraser outline
+  cx3.beginPath();
+  cx3.arc(px, py, 18, 0, Math.PI * 2);
+  cx3.strokeStyle = 'rgba(255,80,80,0.8)';
+  cx3.lineWidth = 2;
+  cx3.stroke();
+
+  // Hand — pinky up only
+  drawHand(cx3, 130, 185, 0.85, [false, false, false, true]);
+  requestAnimationFrame(animSlide3);
+}
+animSlide3();
