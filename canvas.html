@@ -67,6 +67,9 @@
 <canvas id="canvas" class="dark"></canvas>
 <canvas id="skeleton-canvas"></canvas>
 
+<!-- FULLSCREEN WEBCAM BACKGROUND (webcam draw mode) -->
+<video id="webcam-bg" autoplay playsinline muted></video>
+
 <!-- TOP TOOLBAR -->
 <div id="toolbar">
 
@@ -155,6 +158,7 @@
     <div class="tb-group-label">Canvas</div>
     <div class="tb-group-content tb-group-row">
       <button class="tb-btn" id="btn-theme" title="Toggle theme">◐</button>
+      <button class="tb-btn" id="btn-webcam-bg" title="Draw over webcam">▣</button>
       <button class="tb-btn" id="btn-save" title="Save image">↓</button>
     </div>
   </div>
@@ -211,6 +215,10 @@
     <div id="save-dialog-label">Filename</div>
     <input type="text" id="save-filename" value="air-canvas" spellcheck="false" />
     <div id="save-dialog-hint">.png will be added automatically</div>
+    <label id="save-webcam-option" style="display:none;">
+      <input type="checkbox" id="save-include-webcam" />
+      <span>Include webcam background</span>
+    </label>
     <div id="save-dialog-btns">
       <button id="save-cancel-btn">Cancel</button>
       <button id="save-confirm-btn">Save</button>
@@ -221,7 +229,7 @@
 <!-- ERASER INDICATOR -->
 <canvas id="eraser-indicator"></canvas>
 
-<div id="version-tag">v3.1</div>
+<div id="version-tag">v3.2</div>
 
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
