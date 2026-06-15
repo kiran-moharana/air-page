@@ -54,9 +54,12 @@ Built with pure HTML, CSS, and JavaScript using Google's MediaPipe Hands library
 
 ```
 air-canvas/
-|-- index.html   
-|-- style.css    
-|-- script.js    
+|-- index.html
+|-- canvas.html
+|-- style.css
+|-- landing.css  
+|-- script.js
+|-- readme.md
 ```
 
 ---
@@ -68,6 +71,12 @@ Kiran Kumar Moharana — [@kiran-moharana](https://github.com/kiran-moharana)
 ---
 
 ## Changelog
+
+### v3.2
+- Added Webcam Draw Mode toggle 
+- Checked — saves drawing combined with current webcam frame
+- Unchecked — saves drawing only, same as before
+- Fixed mouse cursor alignment — canvas now correctly accounts for toolbar height, cursor reaches full drawing area up to the toolbar
 
 ### v3.1
 - Added gesture tutorial
