@@ -551,6 +551,46 @@ canvas.dark  { background: #0d0d14; }
   color: #fff;
 }
 
+/* FULLSCREEN WEBCAM BACKGROUND */
+#webcam-bg {
+  position: fixed;
+  top: 56px; left: 0;
+  width: 100vw;
+  height: calc(100vh - 56px);
+  object-fit: cover;
+  transform: scaleX(-1);
+  z-index: -1;
+  display: none;
+}
+
+#canvas.webcam-active {
+  background: transparent !important;
+}
+
+.tb-btn.webcam-active {
+  background: rgba(167,139,250,0.2);
+  border-color: rgba(167,139,250,0.5);
+  color: #a78bfa;
+}
+
+/* SAVE WEBCAM OPTION */
+#save-webcam-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  color: rgba(255,255,255,0.6);
+  cursor: pointer;
+}
+
+#save-webcam-option input {
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+  accent-color: #a78bfa;
+}
+
 /* VERSION TAG */
 #version-tag {
   position: fixed;
