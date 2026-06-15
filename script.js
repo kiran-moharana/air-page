@@ -11,6 +11,7 @@ const oCtx = camOverlay.getContext('2d');
 
 const video = document.getElementById('webcam');
 const camWrap = document.getElementById('cam-wrap');
+const webcamBg = document.getElementById('webcam-bg');
 
 let currentColor = COLORS[0];
 let brushSize = 8;
@@ -56,17 +57,20 @@ let isDark = true;
 let mouseMode = false;
 let isMouseDrawing = false;
 
+// Height of the fixed top toolbar — used to align canvas coordinates
+const TOOLBAR_HEIGHT = 56;
+
 // ── BRUSH PREVIEW CANVAS ──
 const brushPreview = document.getElementById('brush-preview');
 const bpCtx = brushPreview.getContext('2d');
 brushPreview.width = window.innerWidth;
-brushPreview.height = window.innerHeight;
+brushPreview.height = window.innerHeight - TOOLBAR_HEIGHT;
 
 // ── ERASER INDICATOR CANVAS (hand mode) ──
 const eraserIndicator = document.getElementById('eraser-indicator');
 const eiCtx = eraserIndicator.getContext('2d');
 eraserIndicator.width = window.innerWidth;
-eraserIndicator.height = window.innerHeight;
+eraserIndicator.height = window.innerHeight - TOOLBAR_HEIGHT;
 
 function drawEraserIndicator(x, y) {
   eiCtx.clearRect(0, 0, eraserIndicator.width, eraserIndicator.height);
@@ -157,13 +161,13 @@ function redrawMain() {
 // ── RESIZE ──
 function resize() {
   canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
+  canvas.height = window.innerHeight - TOOLBAR_HEIGHT;
   skelCanvas.width = window.innerWidth;
-  skelCanvas.height = window.innerHeight;
+  skelCanvas.height = window.innerHeight - TOOLBAR_HEIGHT;
   brushPreview.width = window.innerWidth;
-  brushPreview.height = window.innerHeight;
+  brushPreview.height = window.innerHeight - TOOLBAR_HEIGHT;
   eraserIndicator.width = window.innerWidth;
-  eraserIndicator.height = window.innerHeight;
+  eraserIndicator.height = window.innerHeight - TOOLBAR_HEIGHT;
   camOverlay.width = 200;
   camOverlay.height = 150;
 
@@ -293,8 +297,21 @@ async function confirmSave() {
   tmp.width = CANVAS_W;
   tmp.height = CANVAS_H;
   const tc = tmp.getContext('2d');
-  tc.fillStyle = isDark ? '#0d0d14' : '#f8f6f1';
-  tc.fillRect(0, 0, CANVAS_W, CANVAS_H);
+
+  const includeWebcam = webcamDrawMode && saveIncludeWebcam.checked;
+
+  if (includeWebcam) {
+    // Draw mirrored webcam frame as background
+    tc.save();
+    tc.translate(CANVAS_W, 0);
+    tc.scale(-1, 1);
+    tc.drawImage(webcamBg, 0, 0, CANVAS_W, CANVAS_H);
+    tc.restore();
+  } else {
+    tc.fillStyle = isDark ? '#0d0d14' : '#f8f6f1';
+    tc.fillRect(0, 0, CANVAS_W, CANVAS_H);
+  }
+
   tc.drawImage(offscreen, 0, 0);
 
   // Try native file picker first (Chrome/Edge)
@@ -374,6 +391,21 @@ infoOverlay.addEventListener('click', e => {
   if (e.target === infoOverlay) infoOverlay.classList.remove('open');
 });
 
+// ── WEBCAM DRAW MODE ──
+let webcamDrawMode = false;
+const btnWebcamBg = document.getElementById('btn-webcam-bg');
+const saveWebcamOption = document.getElementById('save-webcam-option');
+const saveIncludeWebcam = document.getElementById('save-include-webcam');
+
+btnWebcamBg.addEventListener('click', () => {
+  webcamDrawMode = !webcamDrawMode;
+  btnWebcamBg.classList.toggle('webcam-active', webcamDrawMode);
+  canvas.classList.toggle('webcam-active', webcamDrawMode);
+  webcamBg.style.display = webcamDrawMode ? 'block' : 'none';
+  saveWebcamOption.style.display = webcamDrawMode ? 'flex' : 'none';
+  if (!webcamDrawMode) saveIncludeWebcam.checked = false;
+});
+
 let isMouseErasing = false;
 
 function drawEraserCursor(x, y) {
@@ -400,8 +432,9 @@ function drawEraserCursor(x, y) {
 // ── MOUSE DRAWING ──
 canvas.addEventListener('mouseenter', e => {
   if (!mouseMode) return;
-  if (e.buttons === 2) drawEraserCursor(e.clientX, e.clientY);
-  else drawBrushCursor(e.clientX, e.clientY);
+  const y = e.clientY - TOOLBAR_HEIGHT;
+  if (e.buttons === 2) drawEraserCursor(e.clientX, y);
+  else drawBrushCursor(e.clientX, y);
 });
 
 canvas.addEventListener('mouseleave', () => {
@@ -414,27 +447,31 @@ canvas.addEventListener('mouseleave', () => {
 
 canvas.addEventListener('mousemove', e => {
   if (!mouseMode) return;
+  const x = e.clientX;
+  const y = e.clientY - TOOLBAR_HEIGHT;
   if (isMouseErasing || e.buttons === 2 || (eraserMode && e.buttons === 1)) {
-    drawEraserCursor(e.clientX, e.clientY);
-    if (isMouseErasing) eraseAt(e.clientX, e.clientY);
+    drawEraserCursor(x, y);
+    if (isMouseErasing) eraseAt(x, y);
   } else {
-    drawBrushCursor(e.clientX, e.clientY);
-    if (isMouseDrawing) drawStroke(e.clientX, e.clientY, true);
+    drawBrushCursor(x, y);
+    if (isMouseDrawing) drawStroke(x, y, true);
   }
 });
 
 canvas.addEventListener('mousedown', e => {
   if (!mouseMode) return;
+  const x = e.clientX;
+  const y = e.clientY - TOOLBAR_HEIGHT;
   if (e.button === 2 || (eraserMode && e.button === 0)) {
     isMouseErasing = true;
     isMouseDrawing = false;
     lastX = null; lastY = null;
-    eraseAt(e.clientX, e.clientY);
+    eraseAt(x, y);
   } else if (e.button === 0) {
     isMouseDrawing = true;
     isMouseErasing = false;
     lastX = null; lastY = null;
-    drawStroke(e.clientX, e.clientY, true);
+    drawStroke(x, y, true);
   }
 });
 
@@ -921,6 +958,7 @@ async function startCamera() {
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
     video.srcObject = stream;
+    webcamBg.srcObject = stream;
     await new Promise(r => video.onloadedmetadata = r);
 
     msgEl.innerHTML = 'Downloading hand model...<br><span style="font-size:11px;opacity:0.5;">First time only — this will not happen again</span>';
