@@ -72,6 +72,11 @@ Kiran Kumar Moharana — [@kiran-moharana](https://github.com/kiran-moharana)
 
 ## Changelog
 
+### v3.3
+- Added background opacity slider in Canvas group
+- Drawing itself is never affected by opacity — only the webcam background layer fades
+- Slider automatically hides when switching back to normal canvas mode
+
 ### v3.2
 - Added Webcam Draw Mode toggle 
 - Checked — saves drawing combined with current webcam frame
