@@ -404,6 +404,28 @@ btnWebcamBg.addEventListener('click', () => {
   webcamBg.style.display = webcamDrawMode ? 'block' : 'none';
   saveWebcamOption.style.display = webcamDrawMode ? 'flex' : 'none';
   if (!webcamDrawMode) saveIncludeWebcam.checked = false;
+  updateOpacityVisibility();
+  applyBgOpacity();
+});
+
+// ── BACKGROUND OPACITY ──
+const bgOpacitySlider = document.getElementById('bg-opacity');
+const opacityVal = document.getElementById('opacity-val');
+const opacityGroup = document.getElementById('opacity-group');
+
+function applyBgOpacity() {
+  const val = +bgOpacitySlider.value / 100;
+  webcamBg.style.opacity = val;
+}
+
+function updateOpacityVisibility() {
+  // Opacity control only makes sense for the webcam background layer
+  opacityGroup.style.display = webcamDrawMode ? 'flex' : 'none';
+}
+
+bgOpacitySlider.addEventListener('input', () => {
+  opacityVal.textContent = bgOpacitySlider.value;
+  applyBgOpacity();
 });
 
 let isMouseErasing = false;
