@@ -159,6 +159,11 @@
     <div class="tb-group-content tb-group-row">
       <button class="tb-btn" id="btn-theme" title="Toggle theme">◐</button>
       <button class="tb-btn" id="btn-webcam-bg" title="Draw over webcam">▣</button>
+      <span id="opacity-group" class="tb-group-row" style="display:none;">
+        <span class="slider-label">Opacity</span>
+        <input type="range" id="bg-opacity" min="0" max="100" value="100" class="h-slider">
+        <span class="slider-val" id="opacity-val">100</span>
+      </span>
       <button class="tb-btn" id="btn-save" title="Save image">↓</button>
     </div>
   </div>
@@ -229,7 +234,7 @@
 <!-- ERASER INDICATOR -->
 <canvas id="eraser-indicator"></canvas>
 
-<div id="version-tag">v3.2</div>
+<div id="version-tag">v3.3</div>
 
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
