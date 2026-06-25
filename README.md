@@ -72,6 +72,8 @@ Kiran Kumar Moharana — [@kiran-moharana](https://github.com/kiran-moharana)
 
 ## Changelog
 
+New Versions Are Coming! Stay Tuned.
+
 ### v3.3
 - Added background opacity slider in Canvas group
 - Drawing itself is never affected by opacity — only the webcam background layer fades
